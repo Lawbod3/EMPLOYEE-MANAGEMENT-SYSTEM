@@ -36,10 +36,13 @@
         <spring-cloud.version>2023.0.3</spring-cloud.version>
         <jwt.version>0.12.6</jwt.version>
         <postgresql.version>42.7.3</postgresql.version>
-        <flyway.version>10.15.0</flyway.version>
+        <flyway.version>9.5.1</flyway.version>
         <testcontainers.version>1.19.7</testcontainers.version>
         <kafka.version>3.6.1</kafka.version>
+
     </properties>
+
+
 
     <dependencyManagement>
         <dependencies>
