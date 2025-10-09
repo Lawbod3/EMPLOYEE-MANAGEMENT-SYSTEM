@@ -43,7 +43,6 @@ public class User {
     @Column(nullable = false)
     private String role = Roles.USER.name();
 
-    private String employeeId;
 
     private boolean enabled = true;
 
