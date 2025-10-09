@@ -5,6 +5,7 @@ import com.darum.auth.repositories.UserRepository;
 import com.darum.shared.dto.request.AuthRequest;
 import com.darum.shared.dto.request.RegisterRequest;
 import com.darum.shared.dto.response.AuthResponse;
+import com.darum.shared.exceptions.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -33,7 +34,7 @@ public class AuthService {
         log.info("Attempting registration for email: {}", request.getEmail());
 
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("User already exists with email: " + request.getEmail());
+            throw new UserAlreadyExistsException("User already exists with email: " + request.getEmail());
         }
 
         // Create new user
