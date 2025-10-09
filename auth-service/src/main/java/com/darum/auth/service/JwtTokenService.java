@@ -21,9 +21,9 @@ public class JwtTokenService {
     private Long jwtExpiration;
 
 
-    public String generateToken(String username, List<String> roles) {
+    public String generateToken(String email, List<String> roles) {
         return Jwts.builder().
-                subject(username).
+                subject(email).
                 claim("roles", roles).
                 issuedAt(new Date()).
                 expiration(new Date(System.currentTimeMillis() + jwtExpiration )).
@@ -38,7 +38,7 @@ public class JwtTokenService {
     /**
      * Gets username from token - assumes JWT subject contains username/email
      */
-    public String getUsernameFromToken(String token) {
+    public String getEmailFromToken(String token) {
         return JwtUtil.extractUsername(token, jwtSecret);
     }
 

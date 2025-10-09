@@ -1,7 +1,8 @@
 package com.darum.shared.dto.response;
 
-import lombok.Getter;
-import lombok.Setter;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import lombok.*;
 
 import java.util.List;
 
@@ -12,4 +13,11 @@ public class AuthResponse {
     private String email;
     private List<String> role;
     private String employeeId;
+
+
+    public AuthResponse(String token, String email, List<String> roles) {
+        this.accessToken = token;
+        this.email = email;
+        this.role = roles;
+    }
 }
