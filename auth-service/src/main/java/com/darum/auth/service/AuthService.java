@@ -16,6 +16,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -39,6 +40,9 @@ public class AuthService {
 
         // Create new user
        User savedUser = modelMapper.map(request, User.class);
+
+        savedUser.setCreatedAt(LocalDateTime.now());
+        savedUser.setUpdatedAt(LocalDateTime.now());
 
         // Encode password
         savedUser.setPassword(passwordEncoder.encode(request.getPassword()));

@@ -20,4 +20,8 @@ public class AuthResponse {
         this.email = email;
         this.role = roles;
     }
+
+    public AuthResponse() {
+
+    }
 }

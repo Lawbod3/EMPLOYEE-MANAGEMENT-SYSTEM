@@ -3,6 +3,9 @@ package com.darum.auth.config;
 
 
 
+import com.darum.shared.dto.request.AuthRequest;
+import com.darum.shared.dto.request.RegisterRequest;
+import com.darum.shared.dto.response.AuthResponse;
 import com.darum.shared.security.SecurityConstants;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -55,6 +58,8 @@ public class SecurityConfig {
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
+
+
 
 
 
