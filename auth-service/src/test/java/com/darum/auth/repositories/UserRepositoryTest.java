@@ -8,6 +8,9 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
+import java.time.LocalDateTime;
+import java.util.Date;
+
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
@@ -29,5 +32,20 @@ public class UserRepositoryTest {
     @Test
     public void testRepositoryIsEmpty() {
         assertTrue(userRepository.findAll().isEmpty());
+    }
+
+    @Test
+    public void testRepositoryContainsUser() {
+        User user = new User();
+        user.setEmail("email@email.com");
+        user.setPassword("password");
+        user.setFirstName("firstName");
+        user.setLastName("lastName");
+        user.setRole("USER");
+        user.setCreatedAt(LocalDateTime.now());
+        user.setUpdatedAt(LocalDateTime.now());
+        user.setEnabled(true);
+        userRepository.save(user);
+        assertTrue(userRepository.findAll().contains(user));
     }
 }

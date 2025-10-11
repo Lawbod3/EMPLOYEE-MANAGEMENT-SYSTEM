@@ -13,6 +13,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,6 +39,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new ApiResponse(false, "INVALID_CREDENTIALS"), HttpStatus.UNAUTHORIZED);
     }
 
+    // Handle access denied (403 Forbidden)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<?> handleAccessDenied(AccessDeniedException ex) {
+        return new ResponseEntity<>(new ApiResponse(false, "ACCESS_DENIED: " + ex.getMessage()), HttpStatus.FORBIDDEN);
+    }
+
+    // 404 NOT FOUND - User not found in the system
     @ExceptionHandler(UsernameNotFoundException.class)
     public ResponseEntity<?> handleUserNotFound(UsernameNotFoundException ex) {
         return new ResponseEntity<>(new ApiResponse(false, "USER_NOT_FOUND"), HttpStatus.NOT_FOUND);

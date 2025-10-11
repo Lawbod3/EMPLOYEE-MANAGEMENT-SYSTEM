@@ -44,4 +44,7 @@ public class JwtUtil {
         return Keys.hmacShaKeyFor(secret.getBytes());
     }
 
+    public static String extractUserId(String token, String jwtSecret) {
+        return extractAllClaims(token, jwtSecret).getSubject();
+    }
 }

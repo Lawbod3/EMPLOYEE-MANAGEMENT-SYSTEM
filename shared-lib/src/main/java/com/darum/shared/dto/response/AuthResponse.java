@@ -24,4 +24,6 @@ public class AuthResponse {
     public AuthResponse() {
 
     }
+
+
 }

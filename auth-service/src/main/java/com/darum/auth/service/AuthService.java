@@ -1,5 +1,6 @@
 package com.darum.auth.service;
 
+import com.darum.auth.model.CustomUserDetails;
 import com.darum.auth.model.User;
 import com.darum.auth.repositories.UserRepository;
 import com.darum.shared.dto.request.AuthRequest;
@@ -8,6 +9,7 @@ import com.darum.shared.dto.response.AuthResponse;
 import com.darum.shared.exceptions.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.common.protocol.types.Field;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -53,7 +55,7 @@ public class AuthService {
 
         List<String> roles = List.of(savedUser.getRole());
         // Generate token for immediate login after registration
-        String token = jwtTokenService.generateToken(savedUser.getEmail(), roles);
+        String token = jwtTokenService.generateToken(savedUser.getEmail(), savedUser.getId(), roles);
 
         return new AuthResponse(token, savedUser.getEmail(), roles);
 
@@ -67,14 +69,24 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
+
+        // Cast to CustomUserDetails and get ID
+        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+
         // extract the email
         String authenticatedEmail = authentication.getName();
+        Long userId = userDetails.getId();
+
+
+
+
+
 
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
-        String token = jwtTokenService.generateToken(authenticatedEmail, roles);
+        String token = jwtTokenService.generateToken(authenticatedEmail, userId,   roles);
 
         log.info("Login successful for email: {}", request.getEmail());
 

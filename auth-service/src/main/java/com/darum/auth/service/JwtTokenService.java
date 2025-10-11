@@ -21,10 +21,11 @@ public class JwtTokenService {
     private Long jwtExpiration;
 
 
-    public String generateToken(String email, List<String> roles) {
+    public String generateToken(String email, Long userId, List<String> roles) {
         return Jwts.builder().
                 subject(email).
                 claim("roles", roles).
+                claim("userId", userId).
                 issuedAt(new Date()).
                 expiration(new Date(System.currentTimeMillis() + jwtExpiration )).
                 signWith(getSigningKey()).compact();

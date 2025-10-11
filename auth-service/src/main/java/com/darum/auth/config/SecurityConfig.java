@@ -3,13 +3,11 @@ package com.darum.auth.config;
 
 
 
-import com.darum.shared.dto.request.AuthRequest;
-import com.darum.shared.dto.request.RegisterRequest;
-import com.darum.shared.dto.response.AuthResponse;
+
 import com.darum.shared.security.SecurityConstants;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
