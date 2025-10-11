@@ -1,1 +1,5 @@
-application.properties
+
+config-repo/
+*.properties
+application*.properties
+*-service.properties
