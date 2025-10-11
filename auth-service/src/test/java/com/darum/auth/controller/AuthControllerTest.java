@@ -2,10 +2,8 @@ package com.darum.auth.controller;
 
 import com.darum.auth.model.User;
 import com.darum.auth.repositories.UserRepository;
-import com.darum.auth.service.AuthService;
 import com.darum.shared.dto.request.AuthRequest;
 import com.darum.shared.dto.request.RegisterRequest;
-import com.darum.shared.dto.response.AuthResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -23,6 +21,7 @@ import org.springframework.test.web.servlet.result.MockMvcResultHandlers;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 
 @SpringBootTest
@@ -57,7 +56,7 @@ public class AuthControllerTest {
         user.setPassword(passwordEncoder.encode("password")); // Properly encoded
         user.setFirstName("Test");
         user.setLastName("User");
-        user.setRole("USER");
+        user.setRoles(List.of("USER"));
         user.setEnabled(true);
         user.setCreatedAt(LocalDateTime.now());
 

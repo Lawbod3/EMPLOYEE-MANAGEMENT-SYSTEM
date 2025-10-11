@@ -39,6 +39,7 @@
         <flyway.version>9.5.1</flyway.version>
         <testcontainers.version>1.19.7</testcontainers.version>
         <kafka.version>3.6.1</kafka.version>
+        <lombok.version>1.18.38</lombok.version>
 
     </properties>
 

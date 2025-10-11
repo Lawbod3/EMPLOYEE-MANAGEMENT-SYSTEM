@@ -9,7 +9,7 @@ import com.darum.shared.dto.response.AuthResponse;
 import com.darum.shared.exceptions.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.common.protocol.types.Field;
+
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -53,7 +53,7 @@ public class AuthService {
         savedUser = userRepository.save(savedUser);
         log.info("User registered successfully with ID: {}", savedUser.getId());
 
-        List<String> roles = List.of(savedUser.getRole());
+        List<String> roles = savedUser.getRoles();
         // Generate token for immediate login after registration
         String token = jwtTokenService.generateToken(savedUser.getEmail(), savedUser.getId(), roles);
 

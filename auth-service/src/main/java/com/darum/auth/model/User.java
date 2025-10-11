@@ -6,18 +6,21 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter @Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "users")
 public class User {
     @Id
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @NotBlank(message = "FirstName is required")
@@ -39,9 +42,9 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-
-    @Column(nullable = false)
-    private String role = Roles.USER.name();
+    @Convert(converter = StringListConverter.class)
+    @Column(nullable = false, length = 255)
+    private List<String> roles = List.of(Roles.USER.name());
 
 
     private boolean enabled = true;
@@ -54,6 +57,18 @@ public class User {
     @LastModifiedDate
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    // Add JPA lifecycle callbacks
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 
 
 }
