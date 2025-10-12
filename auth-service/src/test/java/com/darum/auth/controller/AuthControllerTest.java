@@ -2,8 +2,8 @@ package com.darum.auth.controller;
 
 import com.darum.auth.model.User;
 import com.darum.auth.repositories.UserRepository;
-import com.darum.shared.dto.request.AuthRequest;
-import com.darum.shared.dto.request.RegisterRequest;
+import com.darum.auth.dto.request.AuthRequest;
+import com.darum.auth.dto.request.RegisterRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;

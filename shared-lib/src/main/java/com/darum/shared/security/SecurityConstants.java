@@ -6,12 +6,11 @@ public class SecurityConstants {
     public static final long JWT_EXPIRATION = 86400000; // 24 hours
 
     public static final String[] PUBLIC_ENDPOINTS = {
-            "/api/auth/login",
-            "/api/auth/register",
-            "/api/auth/validate",
+            "/auth/**",          // ADD THIS - for direct service access
             "/actuator/health",
             "/v3/api-docs/**",
             "/swagger-ui/**",
-            "/swagger-ui.html"
     };
 }
+
+

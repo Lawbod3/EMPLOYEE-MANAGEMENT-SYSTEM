@@ -1,4 +1,4 @@
-package com.darum;
+package com.darum.employee;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

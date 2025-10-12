@@ -1,4 +1,4 @@
-package com.darum.shared.dto.request;
+package com.darum.auth.dto.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

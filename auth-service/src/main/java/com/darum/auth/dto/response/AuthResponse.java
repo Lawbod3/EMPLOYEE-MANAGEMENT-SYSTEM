@@ -1,7 +1,5 @@
-package com.darum.shared.dto.response;
+package com.darum.auth.dto.response;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.util.List;

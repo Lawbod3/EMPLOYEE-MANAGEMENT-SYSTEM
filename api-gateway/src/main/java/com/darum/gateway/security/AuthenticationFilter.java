@@ -81,12 +81,9 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
     private boolean isPublicEndpoint(ServerHttpRequest request) {
         String path = request.getPath().toString();
-        for (String publicEndpoint : SecurityConstants.PUBLIC_ENDPOINTS) {
-            String cleanPath = publicEndpoint.replace("/**", "");
-            if (path.startsWith(cleanPath)) {
-                return true;
-            }
-        }
-        return false;
+        // Only check paths that come into the GATEWAY
+        boolean isPublic = path.startsWith("/api/auth/");
+        System.out.println("=== Path: " + path + " | Is Public: " + isPublic);
+        return isPublic;
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import reactor.core.publisher.Mono;
 
+import java.util.Objects;
+
 @Configuration
 public class RateLimiterConfig {
     // Rate limit by user IP address
@@ -13,9 +15,9 @@ public class RateLimiterConfig {
     @Primary // This is the go to among all others ..
     public KeyResolver ipKeyResolver() {
         return exchange -> {
-            String ipAddress = exchange.getRequest()
-                    .getRemoteAddress()
-                    .getAddress()
+            String ipAddress = Objects.requireNonNull(
+                    exchange.getRequest().getRemoteAddress()
+                    ).getAddress()
                     .getHostAddress();
             return Mono.just(ipAddress);
         };
@@ -32,7 +34,10 @@ public class RateLimiterConfig {
                 return Mono.just(userId);
             }
             // Fallback to IP if no user ID
-            return ipKeyResolver().resolve(exchange);
+            String ipAddress = Objects.requireNonNull(
+                    exchange.getRequest().getRemoteAddress()
+            ).getAddress().getHostAddress();
+            return Mono.just(ipAddress);
         };
 
     }

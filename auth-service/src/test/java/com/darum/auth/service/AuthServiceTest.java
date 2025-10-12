@@ -1,11 +1,10 @@
 package com.darum.auth.service;
 
-import com.darum.auth.model.User;
 import com.darum.auth.repositories.UserRepository;
-import com.darum.shared.dto.request.AuthRequest;
-import com.darum.shared.dto.request.RegisterRequest;
+import com.darum.auth.dto.request.AuthRequest;
+import com.darum.auth.dto.request.RegisterRequest;
 
-import com.darum.shared.dto.response.AuthResponse;
+import com.darum.auth.dto.response.AuthResponse;
 import com.darum.shared.exceptions.UserAlreadyExistsException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

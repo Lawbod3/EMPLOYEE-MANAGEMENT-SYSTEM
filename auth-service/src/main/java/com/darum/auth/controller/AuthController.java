@@ -1,25 +1,32 @@
 package com.darum.auth.controller;
 
+import com.darum.auth.dto.response.UserResponse;
+import com.darum.auth.model.CustomUserDetails;
+import com.darum.auth.model.User;
+import com.darum.auth.repositories.UserRepository;
 import com.darum.auth.service.AuthService;
-import com.darum.shared.dto.request.AuthRequest;
-import com.darum.shared.dto.request.RegisterRequest;
+import com.darum.auth.dto.request.AuthRequest;
+import com.darum.auth.dto.request.RegisterRequest;
 import com.darum.shared.dto.response.ApiResponse;
-import com.darum.shared.dto.response.AuthResponse;
+import com.darum.auth.dto.response.AuthResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
+    private final ModelMapper modelMapper;
 
    @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
@@ -33,7 +40,13 @@ public class AuthController {
        return new ResponseEntity<>(new ApiResponse(true, response), HttpStatus.OK);
    }
 
-
+    @GetMapping("/me")
+    public ResponseEntity<UserResponse> getById(@AuthenticationPrincipal CustomUserDetails userDetail) {
+        Optional<User> userFound = userRepository.findByEmail(userDetail.getUsername());
+        return userFound
+                .map(user -> ResponseEntity.ok(modelMapper.map(user, UserResponse.class)))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
 
 }

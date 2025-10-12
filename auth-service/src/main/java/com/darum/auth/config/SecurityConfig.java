@@ -4,6 +4,7 @@ package com.darum.auth.config;
 
 
 
+import com.darum.auth.filter.JwtAuthenticationFilter;
 import com.darum.shared.security.SecurityConstants;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -27,16 +28,18 @@ import javax.sql.DataSource;
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
        http.csrf(csrf -> csrf.disable())
                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                .authorizeHttpRequests(authz -> authz
-                       .requestMatchers(SecurityConstants.PUBLIC_ENDPOINTS).permitAll()
+                       .requestMatchers("/auth/**").permitAll()
                        .requestMatchers("/api/auth/admin/**").hasAnyRole("ADMIN","SUPERADMIN")
                        .anyRequest().authenticated()
-               );
+               )
+               .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -56,9 +59,5 @@ public class SecurityConfig {
     public ModelMapper modelMapper() {
         return new ModelMapper();
     }
-
-
-
-
 
 }
