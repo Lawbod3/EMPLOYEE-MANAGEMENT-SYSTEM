@@ -23,23 +23,36 @@ import java.util.UUID;
 @AllArgsConstructor
 public class Employee {
     @Id
-    private UUID employeeId;  // Internal employee-service ID
+    @Column("employee_id")  // This is your primary key in DB
+    private Long id;  // Maps to employee_id BIGSERIAL
+
     @Column("employee_code")
-    private String employeeCode; // e.g. EMP-001 (generated internally)
+    private String employeeCode;
+
     @Column("user_id")
-    private Long userId; // reference to the user in auth-service
-    @Column("firstname")
+    private Long userId;
+
+    @Column("first_name")  // Match database column name
     private String firstName;
-    @Column("lastname")
+
+    @Column("last_name")   // Match database column name
     private String lastName;
+
     @Column("email")
     private String email;
+
     @Column("status")
-    private Status status; // ACTIVE, INACTIVE, SUSPENDED, etc.
-    private List<String> departments;
+    private Status status;
+
+    @Column("departments")  // Match database column name
+    private Department department;
+
     @CreatedDate
+    @Column("created_at")
     private LocalDateTime createdAt;
+
     @LastModifiedDate
+    @Column("updated_at")
     private LocalDateTime updatedAt;
 
 }

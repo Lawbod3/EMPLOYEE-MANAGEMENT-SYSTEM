@@ -6,6 +6,7 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.SecretKey;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class JwtUtil {
@@ -41,7 +42,8 @@ public class JwtUtil {
     }
 
     private static SecretKey getSigningKey(String secret) {
-        return Keys.hmacShaKeyFor(secret.getBytes());
+        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
     }
 
     public static String extractUserId(String token, String jwtSecret) {

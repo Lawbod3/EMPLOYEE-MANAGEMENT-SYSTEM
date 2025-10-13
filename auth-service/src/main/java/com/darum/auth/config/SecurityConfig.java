@@ -4,14 +4,13 @@ package com.darum.auth.config;
 
 
 
-import com.darum.auth.filter.JwtAuthenticationFilter;
-import com.darum.shared.security.SecurityConstants;
+//import com.darum.auth.security.JwtAuthenticationFilter;
+import com.darum.auth.security.GatewayHeaderAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -22,13 +21,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-import javax.sql.DataSource;
-
 @Configuration
 @EnableWebSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    //private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final GatewayHeaderAuthenticationFilter gatewayHeaderAuthenticationFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -39,7 +37,8 @@ public class SecurityConfig {
                        .requestMatchers("/api/auth/admin/**").hasAnyRole("ADMIN","SUPERADMIN")
                        .anyRequest().authenticated()
                )
-               .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+               .addFilterBefore(gatewayHeaderAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+               //.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

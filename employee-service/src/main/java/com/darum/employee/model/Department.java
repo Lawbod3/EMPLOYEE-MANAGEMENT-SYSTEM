@@ -1,5 +1,8 @@
 package com.darum.employee.model;
 
+import java.util.Arrays;
+import java.util.Optional;
+
 public enum Department {
     IT,
     HR,
@@ -9,13 +12,11 @@ public enum Department {
     OPERATIONS,
     SUPPORT;
 
-    // Optional helper for cleaner use
-    public static boolean isValid(String value) {
-        for (Department department : Department.values()) {
-            if (department.name().equalsIgnoreCase(value)) {
-                return true;
-            }
-        }
-        return false;
+
+
+    public static Optional<Department> fromString(String value) {
+        return Arrays.stream(values())
+                .filter(dept -> dept.name().equalsIgnoreCase(value))
+                .findFirst();
     }
 }

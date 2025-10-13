@@ -11,17 +11,7 @@ import java.util.UUID;
 
 
 @Repository
-public interface EmployeeRepository extends ReactiveCrudRepository<Employee, String> {
-    // Find employee by userId (reference from auth-service)
-    Mono<Employee> findByUserId(String userId);
-
-    // Find employees by department (since it’s stored as a string list)
-    Flux<Employee> findByDepartmentsContaining(String department);
-
-    // Find by status (e.g., ACTIVE, INACTIVE)
-    Flux<Employee> findByStatus(String status);
-
-    // Optional: if you make employeeCode unique
-    Mono<Employee> findByEmployeeCode(String employeeCode);
+public interface EmployeeRepository extends ReactiveCrudRepository<Employee, Long> {
+    Mono<Boolean> existsByUserId(String userId);
 
 }

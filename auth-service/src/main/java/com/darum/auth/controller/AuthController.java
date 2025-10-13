@@ -1,6 +1,6 @@
 package com.darum.auth.controller;
 
-import com.darum.auth.dto.response.UserResponse;
+import com.darum.shared.dto.response.UserResponse;
 import com.darum.auth.model.CustomUserDetails;
 import com.darum.auth.model.User;
 import com.darum.auth.repositories.UserRepository;
@@ -46,6 +46,14 @@ public class AuthController {
         return userFound
                 .map(user -> ResponseEntity.ok(modelMapper.map(user, UserResponse.class)))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/user/email")
+    public ResponseEntity<UserResponse> getByEmail(@RequestParam String email) {
+       Optional<User> userFound = userRepository.findByEmail(email);
+       return userFound
+               .map(user -> ResponseEntity.ok(modelMapper.map(user, UserResponse.class)))
+               .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 

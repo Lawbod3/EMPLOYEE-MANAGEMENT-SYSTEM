@@ -1,4 +1,4 @@
-package com.darum.auth.dto.response;
+package com.darum.shared.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

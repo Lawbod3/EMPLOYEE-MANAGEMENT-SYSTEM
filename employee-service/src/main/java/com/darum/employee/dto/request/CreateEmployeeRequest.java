@@ -14,6 +14,6 @@ public class CreateEmployeeRequest {
     @Email
     private String email;
     @NotEmpty
-    private List<String> departments;
+    private String department;
 
 }

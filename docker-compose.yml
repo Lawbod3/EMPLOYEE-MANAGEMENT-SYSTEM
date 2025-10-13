@@ -17,5 +17,24 @@ services:
       timeout: 10s
       retries: 3
 
+  auth-service:
+    build: ./auth-service
+    container_name: auth_service
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/auth_db
+      SPRING_DATASOURCE_USERNAME: sulaimonlawal
+      SPRING_DATASOURCE_PASSWORD: Omolade3
+
+      # ✅ SuperAdmin seeding environment variables (read in Spring Boot)
+      SEED_SUPERADMIN: "true"
+      SUPERADMIN_EMAIL: superadmin@yourdomain.com
+      SUPERADMIN_PASSWORD: YourStrongPassword123
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    restart: always
+
 volumes:
   postgres_data:

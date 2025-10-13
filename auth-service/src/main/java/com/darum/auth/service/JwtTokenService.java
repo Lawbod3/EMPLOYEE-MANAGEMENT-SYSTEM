@@ -4,6 +4,7 @@ import com.darum.shared.security.JwtUtil;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,13 @@ public class JwtTokenService {
 
     @Value("${jwt.expiration}")
     private Long jwtExpiration;
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(JwtTokenService.class);
+
+    @PostConstruct
+    public void init() {
+        log.info("Auth Service - JWT Secret: {}", jwtSecret);
+    }
 
 
     public String generateToken(String email, Long userId, List<String> roles) {

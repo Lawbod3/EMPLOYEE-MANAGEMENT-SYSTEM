@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
@@ -16,6 +14,8 @@ import java.util.List;
 
 @Getter @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 @Entity
 @Table(name = "users")
 public class User {
