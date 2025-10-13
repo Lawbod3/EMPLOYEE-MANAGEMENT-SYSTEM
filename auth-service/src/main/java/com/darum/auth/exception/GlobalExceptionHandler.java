@@ -2,6 +2,7 @@ package com.darum.auth.exception;
 
 
 import com.darum.shared.dto.response.ApiResponse;
+import com.darum.shared.exceptions.RoleException;
 import com.darum.shared.exceptions.UserAlreadyExistsException;
 import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
@@ -59,6 +60,18 @@ public class GlobalExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
         return new ResponseEntity<>(new ApiResponse(false, errors), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse> handleRuntimeException(RuntimeException e) {
+        return ResponseEntity.badRequest()
+                .body(new ApiResponse(false, e.getMessage()));
+    }
+
+    @ExceptionHandler(RoleException.class)
+    public ResponseEntity<ApiResponse> handleRuntimeException(RoleException e) {
+        return ResponseEntity.badRequest()
+                .body(new ApiResponse(false, e.getMessage()));
     }
 }
 

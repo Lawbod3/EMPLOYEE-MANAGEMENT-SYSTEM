@@ -6,6 +6,7 @@ import com.darum.employee.model.Department;
 import com.darum.employee.model.Employee;
 import com.darum.employee.model.Status;
 import com.darum.employee.repositories.EmployeeRepository;
+import com.darum.shared.dto.Roles;
 import com.darum.shared.dto.response.UserResponse;
 import com.darum.shared.security.SecurityConstants;
 import lombok.RequiredArgsConstructor;
@@ -13,10 +14,12 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import org.springframework.http.HttpHeaders;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 
@@ -48,9 +51,9 @@ public class AdminEmployeeService {
                 .bodyToMono(UserResponse.class)
                 .onErrorResume(e -> Mono.error(new RuntimeException("Authentication failed: " + e.getMessage())))
                 .flatMap(adminUser -> {
-                    // ✅ Check if admin has permission
-                    if (!adminUser.getRoles().contains("ADMIN") &&
-                            !adminUser.getRoles().contains("SUPERADMIN")) {
+                    //  Check if admin has permission
+                    if (!adminUser.getRoles().contains(Roles.ADMIN) &&
+                            !adminUser.getRoles().contains(Roles.SUPERADMIN)) {
                         return Mono.error(new RuntimeException("Access denied"));
                     }
 
@@ -72,7 +75,7 @@ public class AdminEmployeeService {
                                     "Invalid department: " + createEmployeeRequest.getDepartment()
                             ));
 
-                    // ✅ Build new employee
+                    //  Build new employee
                     Employee employee = new Employee();
                     employee.setEmployeeCode(generateEmployeeCode());
                     employee.setUserId(targetUser.getId());
@@ -98,10 +101,41 @@ public class AdminEmployeeService {
 
     }
 
-
-
     private String generateEmployeeCode() {
         return "EMP-" + UUID.randomUUID().toString().substring(0, 6).toUpperCase();
     }
+
+    public Flux<EmployeeResponse> getAllEmployees(String token, ServerHttpRequest request) {
+        // Get headers from the incoming request (from gateway)
+        String userId = request.getHeaders().getFirst("X-User-Id");
+        String userEmail = request.getHeaders().getFirst("X-User-Email");
+        String userRoles = request.getHeaders().getFirst("X-User-Roles");
+
+        System.out.println("=== EMPLOYEE SERVICE: Gateway Headers ===");
+        System.out.println("=== X-User-Id: " + userId);
+        System.out.println("=== X-User-Email: " + userEmail);
+        System.out.println("=== X-User-Roles: " + userRoles);
+        return authWebClient.get()
+                .uri("/auth/me")
+                .header(HttpHeaders.AUTHORIZATION, SecurityConstants.TOKEN_PREFIX + token)
+                .header("X-User-Id", userId)
+                .header("X-User-Email", userEmail)
+                .header("X-User-Roles", userRoles)
+                .retrieve()
+                .bodyToMono(UserResponse.class)
+                .onErrorResume(e -> Mono.error(new RuntimeException("Authentication failed: " + e.getMessage())))
+                .flatMapMany(adminUser -> {
+                    //  Check if admin has permission
+                    if (!adminUser.getRoles().contains(Roles.ADMIN) &&
+                            !adminUser.getRoles().contains(Roles.SUPERADMIN)) {
+                        return Mono.error(new RuntimeException("Access denied"));
+                    }
+                    return employeeRepository.findAll()
+                            .map(employee -> modelMapper.map(employee, EmployeeResponse.class));
+
+    });
+
+
+                }
 
 }

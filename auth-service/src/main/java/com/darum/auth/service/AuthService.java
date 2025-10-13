@@ -6,6 +6,10 @@ import com.darum.auth.repositories.UserRepository;
 import com.darum.auth.dto.request.AuthRequest;
 import com.darum.auth.dto.request.RegisterRequest;
 import com.darum.auth.dto.response.AuthResponse;
+import com.darum.shared.dto.Roles;
+import com.darum.shared.dto.request.AddRoleRequest;
+import com.darum.shared.dto.response.UserResponse;
+import com.darum.shared.exceptions.RoleException;
 import com.darum.shared.exceptions.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +23,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,36 +68,59 @@ public class AuthService {
 
     public AuthResponse login(AuthRequest request){
         log.info("Attempting login for email: {}", request.getEmail());
-
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
-
-
         // Cast to CustomUserDetails and get ID
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-
         // extract the email
         String authenticatedEmail = authentication.getName();
         Long userId = userDetails.getId();
-
-
-
-
-
-
         List<String> roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
         String token = jwtTokenService.generateToken(authenticatedEmail, userId,   roles);
-
         log.info("Login successful for email: {}", request.getEmail());
-
         return new AuthResponse(token, authenticatedEmail, roles);
-
     }
 
+    public UserResponse addRoleToUser(Long userId, String role) {
+        try {
+            // Find the user by ID
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> {
+                        return new RuntimeException("User not found with ID: " + userId);
+                    });
+            // ✅ USE ROLES CONSTANT
+            if (role.equals(Roles.SUPERADMIN)) {
+                throw new RoleException("Access denied");
+            }
+            // Get current roles
+            List<String> currentRoles = new ArrayList<>(user.getRoles()); // Create new mutable list
+
+            System.out.println("🔍 Current roles list: " + currentRoles);
+            // Check if role already exists
+            if (currentRoles.contains(role)) {
+                throw new RoleException("User already has role: " + role);
+            }
+            // Add the new role
+            currentRoles.add(role);
+            user.setRoles(currentRoles);
+            user.setUpdatedAt(LocalDateTime.now());
+
+            // Save the updated user
+            User updatedUser = userRepository.save(user);
+
+            UserResponse response = modelMapper.map(updatedUser, UserResponse.class);
+
+
+            return response;
+
+        } catch (Exception e) {
+
+            throw new RuntimeException("Failed to add role: " + e.getMessage(), e);
+        }
+    }
 
 }

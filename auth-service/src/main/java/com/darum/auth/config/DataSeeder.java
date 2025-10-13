@@ -42,7 +42,7 @@ public class DataSeeder implements CommandLineRunner {
                     superAdmin.setLastName("Administrator");
                     superAdmin.setEmail(superAdminEmail);
                     superAdmin.setPassword(passwordEncoder.encode(superAdminPassword));
-                    superAdmin.setRoles(List.of(Roles.SUPERADMIN.name(), Roles.ADMIN.name())); // 👈 give both roles
+                    superAdmin.setRoles(List.of(Roles.SUPERADMIN, Roles.ADMIN)); // 👈 give both roles
 
                     userRepository.save(superAdmin);
                     System.out.println("🚀 SuperAdmin seeded successfully: " + superAdminEmail);

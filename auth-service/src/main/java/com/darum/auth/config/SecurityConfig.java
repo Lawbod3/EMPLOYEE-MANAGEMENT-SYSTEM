@@ -34,7 +34,7 @@ public class SecurityConfig {
                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                .authorizeHttpRequests(authz -> authz
                        .requestMatchers("/auth/**").permitAll()
-                       .requestMatchers("/api/auth/admin/**").hasAnyRole("ADMIN","SUPERADMIN")
+                       .requestMatchers("/auth/admin/**").hasAnyRole("ADMIN","SUPERADMIN")
                        .anyRequest().authenticated()
                )
                .addFilterBefore(gatewayHeaderAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

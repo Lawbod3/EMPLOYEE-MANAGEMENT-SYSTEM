@@ -10,6 +10,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter @Setter
@@ -43,8 +44,8 @@ public class User {
     private String password;
 
     @Convert(converter = StringListConverter.class)
-    @Column(nullable = false, length = 255)
-    private List<String> roles = List.of(Roles.USER.name());
+    @Column(nullable = false, length = 1000)
+    private List<String> roles = new ArrayList<>(List.of(Roles.USER));;
 
 
     private boolean enabled = true;
