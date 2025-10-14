@@ -3,7 +3,9 @@ package com.darum.auth.exception;
 
 import com.darum.shared.dto.response.ApiResponse;
 import com.darum.shared.exceptions.RoleException;
+import com.darum.shared.exceptions.UnauthorizedException;
 import com.darum.shared.exceptions.UserAlreadyExistsException;
+import com.darum.shared.exceptions.UserNotFoundException;
 import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -70,6 +72,18 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RoleException.class)
     public ResponseEntity<ApiResponse> handleRuntimeException(RoleException e) {
+        return ResponseEntity.badRequest()
+                .body(new ApiResponse(false, e.getMessage()));
+    }
+
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse> handleRuntimeException(UnauthorizedException e) {
+        return ResponseEntity.badRequest()
+                .body(new ApiResponse(false, e.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiResponse> handleRuntimeException(UserNotFoundException e) {
         return ResponseEntity.badRequest()
                 .body(new ApiResponse(false, e.getMessage()));
     }

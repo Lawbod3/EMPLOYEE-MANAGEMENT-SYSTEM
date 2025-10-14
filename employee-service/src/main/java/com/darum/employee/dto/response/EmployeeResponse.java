@@ -23,9 +23,13 @@ public class EmployeeResponse {
     @NotBlank
     private String status;
     @NotBlank
-    private List<String> departments;
+    private String department;
     @NotBlank
     private LocalDateTime createdAt;
     @NotBlank
     private LocalDateTime updatedAt;
+    @NotBlank
+    private List<String> roles;
+
+
 }

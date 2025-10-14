@@ -19,14 +19,13 @@ import reactor.core.publisher.Mono;
 import org.springframework.http.HttpHeaders;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 
 
 @Service
 @RequiredArgsConstructor
-public class AdminEmployeeService {
+public class AdminService {
     private final EmployeeRepository employeeRepository;
     private final WebClient authWebClient;
     private final ModelMapper modelMapper;
@@ -137,5 +136,7 @@ public class AdminEmployeeService {
 
 
                 }
+
+
 
 }

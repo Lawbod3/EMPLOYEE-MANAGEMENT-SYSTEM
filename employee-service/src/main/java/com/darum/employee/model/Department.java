@@ -20,5 +20,9 @@ public enum Department {
                 .findFirst();
     }
 
+    public static Boolean isDepartment(String value) {
+        return fromString(value).isPresent();
+    }
+
 
 }

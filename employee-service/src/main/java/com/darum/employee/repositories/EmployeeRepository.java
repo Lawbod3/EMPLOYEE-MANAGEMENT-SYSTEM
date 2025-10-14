@@ -1,5 +1,6 @@
 package com.darum.employee.repositories;
 
+import com.darum.employee.model.Department;
 import com.darum.employee.model.Employee;
 
 import jakarta.validation.constraints.Email;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Repository
 public interface EmployeeRepository extends ReactiveCrudRepository<Employee, Long> {
+     Flux<Employee> findByDepartment(Department department);
     Mono<Boolean> existsByUserId(String userId);
 
     Mono<Employee> findByEmail(@Email(message = "Email should be valid") @NotBlank(message = "Employee email is required") String employeeEmail);

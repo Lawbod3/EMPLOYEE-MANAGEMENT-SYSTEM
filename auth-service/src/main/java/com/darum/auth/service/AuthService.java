@@ -10,7 +10,9 @@ import com.darum.shared.dto.Roles;
 import com.darum.shared.dto.request.AddRoleRequest;
 import com.darum.shared.dto.response.UserResponse;
 import com.darum.shared.exceptions.RoleException;
+import com.darum.shared.exceptions.UnauthorizedException;
 import com.darum.shared.exceptions.UserAlreadyExistsException;
+import com.darum.shared.exceptions.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -85,16 +87,16 @@ public class AuthService {
         return new AuthResponse(token, authenticatedEmail, roles);
     }
 
-    public UserResponse addRoleToUser(Long userId, String role) {
+    public UserResponse addRoleToUser(Long userId, String role)  {
         try {
             // Find the user by ID
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> {
-                        return new RuntimeException("User not found with ID: " + userId);
+                        return new UserNotFoundException("User not found with ID: " + userId);
                     });
             // ✅ USE ROLES CONSTANT
             if (role.equals(Roles.SUPERADMIN)) {
-                throw new RoleException("Access denied");
+                throw new UnauthorizedException("Access denied");
             }
             // Get current roles
             List<String> currentRoles = new ArrayList<>(user.getRoles()); // Create new mutable list
@@ -116,7 +118,9 @@ public class AuthService {
 
 
             return response;
-
+        } catch (RoleException | UnauthorizedException | UserNotFoundException e) {
+            // Re-throw specific exceptions
+            throw e;
         } catch (Exception e) {
 
             throw new RuntimeException("Failed to add role: " + e.getMessage(), e);

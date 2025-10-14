@@ -1,7 +1,7 @@
 package com.darum.employee.controller;
 
 import com.darum.employee.dto.request.CreateEmployeeRequest;
-import com.darum.employee.service.AdminEmployeeService;
+import com.darum.employee.service.AdminService;
 import com.darum.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,8 +14,8 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/employees/admin")
 @RequiredArgsConstructor
-public class AdminEmployeeController {
-    private final AdminEmployeeService employeeService;
+public class AdminController {
+    private final AdminService employeeService;
 
     @PostMapping("/create")
     public Mono<ResponseEntity<ApiResponse>> createEmployee(@RequestHeader("Authorization") String authorization,
