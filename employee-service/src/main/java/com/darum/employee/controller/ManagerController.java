@@ -35,31 +35,54 @@ public class ManagerController {
                             new ApiResponse(true,  promotedEmployee)
                     );
                 })
-                .onErrorResume(e -> handlePromotionError(e));
+                .onErrorResume(e -> handleError(e, "Promotion"));
     }
 
-    private Mono<ResponseEntity<ApiResponse>> handlePromotionError(Throwable e) {
-        String errorMessage = e.getMessage();
-        log.error("❌ Promotion failed: {}", errorMessage);
 
+
+    @GetMapping("/my-department")
+    public Mono<ResponseEntity<ApiResponse>> getEmployeesInMyDepartment(
+            @RequestHeader("Authorization") String authorizationHeader,
+            ServerHttpRequest request) {
+
+        String token = extractToken(authorizationHeader);
+        log.info("🎯 Manager/Admin/SuperAdmin requesting employees in their department");
+
+        return managerService.getEmployeesInMyDepartment(token, request)
+                .collectList()
+                .map(employees -> {
+                    log.info("✅ Successfully retrieved {} employees from user's department", employees.size());
+                    return ResponseEntity.ok(
+                            new ApiResponse(true, employees)
+                    );
+                })
+                .onErrorResume(e -> handleError(e, "department lookUP"));
+    }
+
+    private Mono<ResponseEntity<ApiResponse>> handleError(Throwable e, String operationType) {
+        String errorMessage = e.getMessage();
+        log.error("❌ {} failed: {}", operationType, errorMessage);
+
+        HttpStatus status = determineHttpStatus(errorMessage, operationType);
+
+        return Mono.just(ResponseEntity.status(status)
+                .body(new ApiResponse(false, errorMessage)));
+    }
+
+    private HttpStatus determineHttpStatus(String errorMessage, String operationType) {
         if (errorMessage.contains("Access denied")) {
-            return Mono.just(ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new ApiResponse(false, errorMessage)));
+            return HttpStatus.FORBIDDEN;
         } else if (errorMessage.contains("not found")) {
-            return Mono.just(ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new ApiResponse(false, errorMessage)));
-        } else if (errorMessage.contains("Invalid department")) {
-            return Mono.just(ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ApiResponse(false, errorMessage)));
+            return HttpStatus.NOT_FOUND;
+        } else if (errorMessage.contains("Invalid department") ||
+                errorMessage.contains("Validation failed")) {
+            return HttpStatus.BAD_REQUEST;
         } else if (errorMessage.contains("already has role")) {
-            return Mono.just(ResponseEntity.status(HttpStatus.CONFLICT)
-                    .body(new ApiResponse(false, errorMessage)));
+            return HttpStatus.CONFLICT;
         } else if (errorMessage.contains("Authentication failed")) {
-            return Mono.just(ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse(false, errorMessage)));
+            return HttpStatus.UNAUTHORIZED;
         } else {
-            return Mono.just(ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ApiResponse(false, "An unexpected error occurred: " + errorMessage)));
+            return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
 

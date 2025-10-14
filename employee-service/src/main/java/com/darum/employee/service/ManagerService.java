@@ -1,6 +1,7 @@
 package com.darum.employee.service;
 
 import com.darum.employee.dto.request.PromoteToManagerRequest;
+import com.darum.employee.dto.response.EmployeeDepartmentResponse;
 import com.darum.employee.dto.response.EmployeeResponse;
 import com.darum.employee.exception.DepartmentNotFoundException;
 import com.darum.employee.exception.EmployeeNotFoundException;
@@ -21,6 +22,7 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
@@ -99,12 +101,13 @@ public class ManagerService {
                                 // Add MANAGER role via Auth Service
                                 return addManagerRoleToUser(targetUser.getId(), token, request)
                                         .then(updateEmployeeAsManager(targetEmployee, department))
-                                        .then(getUpdatedUser(targetUser.getId(), token, request)) // ← Get user with new ro
-                                        .then(Mono.fromCallable(() ->{
+                                        .then(getUpdatedUser(targetUser.getEmail(), token, request)) // ← Get user with new ro
+                                        .map(updatedUser -> { // ← Use the UPDATED user here
                                             EmployeeResponse response = modelMapper.map(targetEmployee, EmployeeResponse.class);
-                                             response.setRoles(targetUser.getRoles()); // ← ADD THIS LINE
-                                        return response;
-                                        }));
+                                            response.setRoles(updatedUser.getRoles()); // ← Use the UPDATED user's roles
+                                            log.info("✅ Final roles after promotion: {}", updatedUser.getRoles());
+                                            return response;
+                                        });
                             });
                 });
     }
@@ -155,19 +158,87 @@ public class ManagerService {
         return employeeRepository.save(employee)
                 .doOnSuccess(updated -> log.info("✅ Updated employee as manager: {}", updated.getEmail()));
     }
-    private Mono<UserResponse> getUpdatedUser(Long userId, String token, ServerHttpRequest request) {
-        String requestUserId = request.getHeaders().getFirst("X-User-Id");
-        String userEmail = request.getHeaders().getFirst("X-User-Email");
-        String userRoles = request.getHeaders().getFirst("X-User-Roles");
+    private Mono<UserResponse> getUpdatedUser(String userEmail, String token, ServerHttpRequest request) {
 
+        String requestUserId = request.getHeaders().getFirst("X-User-Id");
+        String adminEmail = request.getHeaders().getFirst("X-User-Email");
+        String adminRoles = request.getHeaders().getFirst("X-User-Roles");
+
+        // Get user by email (same as your earlier approach)
         return authWebClient.get()
-                .uri("/auth/users/{userId}/roles", userId) // ← ADD /roles at the end
+                .uri(uriBuilder -> uriBuilder
+                        .path("/auth/user/email")
+                        .queryParam("email", userEmail)
+                        .build())
                 .header(HttpHeaders.AUTHORIZATION, SecurityConstants.TOKEN_PREFIX + token)
                 .header("X-User-Id", requestUserId)
-                .header("X-User-Email", userEmail)
-                .header("X-User-Roles", userRoles)
+                .header("X-User-Email", adminEmail)
+                .header("X-User-Roles", adminRoles)
                 .retrieve()
                 .bodyToMono(UserResponse.class)
                 .doOnSuccess(user -> log.info("🔍 Retrieved updated user with roles: {}", user.getRoles()));
     }
+
+    public Flux<EmployeeDepartmentResponse> getEmployeesInMyDepartment(String token, ServerHttpRequest request) {
+        // Get headers from gateway
+        String userId = request.getHeaders().getFirst("X-User-Id");
+        String userEmail = request.getHeaders().getFirst("X-User-Email");
+        String userRoles = request.getHeaders().getFirst("X-User-Roles");
+
+        log.info("🔍 User requesting employees in their department: {}", userEmail);
+
+        return authWebClient.get()
+                .uri("/auth/me")
+                .header(HttpHeaders.AUTHORIZATION, SecurityConstants.TOKEN_PREFIX + token)
+                .header("X-User-Id", userId)
+                .header("X-User-Email", userEmail)
+                .header("X-User-Roles", userRoles)
+                .retrieve()
+                .bodyToMono(UserResponse.class)
+                .onErrorResume(e -> Mono.error(new RuntimeException("Authentication failed: " + e.getMessage())))
+                .flatMapMany(currentUser -> {
+                    // Check if user has Manager, Admin, or SuperAdmin privileges
+                    if (!hasManagerOrAdminPrivileges(currentUser.getRoles())) {
+                        return Flux.error(new UnauthorizedException(
+                                "Access denied: Manager, Admin, or SuperAdmin privileges required"));
+                    }
+
+                    // First, check if user has an employee record (regardless of role)
+                    return employeeRepository.findByEmail(currentUser.getEmail())
+                            .flatMapMany(userEmployee -> {
+                                // User has employee record - show their ACTUAL department
+                                Department userDepartment = userEmployee.getDepartment();
+                                log.info("👤 {} (with employee record) viewing department: {}",
+                                        currentUser.getEmail(), userDepartment);
+
+                                return employeeRepository.findByDepartment(userDepartment)
+                                        .map(employee -> modelMapper.map(employee, EmployeeDepartmentResponse.class))
+                                        .doOnNext(emp -> log.debug("📋 Found employee: {} in department: {}",
+                                                emp.getEmail(), emp.getDepartment()));
+                            })
+                            .switchIfEmpty(Flux.defer(() -> {
+                                // User has NO employee record - handle based on role
+                                if (currentUser.getRoles().contains(Roles.SUPERADMIN)) {
+                                    log.info("👑 SuperAdmin {} (no employee record) viewing default OPERATIONS department",
+                                            currentUser.getEmail());
+                                    return employeeRepository.findByDepartment(Department.OPERATIONS)
+                                            .map(employee -> modelMapper.map(employee, EmployeeDepartmentResponse.class));
+                                } else {
+                                    // Regular Admin/Manager without employee record - error
+                                    return Flux.error(new RuntimeException(
+                                            "Employee record not found for: " + currentUser.getEmail()));
+                                }
+                            }));
+                })
+                .doOnComplete(() -> log.info("✅ Successfully retrieved employees"));
+
+    }
+
+    private boolean hasManagerOrAdminPrivileges(java.util.List<String> roles) {
+        return roles.contains(Roles.MANAGER) ||
+                roles.contains(Roles.ADMIN) ||
+                roles.contains(Roles.SUPERADMIN);
+    }
+
+
 }
