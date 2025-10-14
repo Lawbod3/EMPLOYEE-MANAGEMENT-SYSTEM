@@ -40,7 +40,7 @@ public class ManagerController {
 
 
 
-    @GetMapping("/my-department")
+    @GetMapping("/manager/my-department")
     public Mono<ResponseEntity<ApiResponse>> getEmployeesInMyDepartment(
             @RequestHeader("Authorization") String authorizationHeader,
             ServerHttpRequest request) {

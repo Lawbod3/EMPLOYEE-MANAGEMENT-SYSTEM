@@ -1,8 +1,7 @@
 package com.darum.employee.controller;
 
-import com.darum.employee.dto.request.PromoteToAdminRequest;
-import com.darum.employee.dto.request.RemoveAdminRequest;
-import com.darum.employee.service.SuperAdminService;
+import com.darum.employee.dto.request.UpdateDepartmentRequest;
+import com.darum.employee.service.DepartmentService;
 import com.darum.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,49 +14,48 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@RequestMapping("/employees/admin")
+@RequestMapping("/employees/department")
 @RequiredArgsConstructor
-public class SuperAdminController {
-    private final SuperAdminService superAdminService;
+public class DepartmentController {
+    private final DepartmentService departmentService;
 
-    @PutMapping("/promote-to-admin")
-    public Mono<ResponseEntity<ApiResponse>> promoteToAdmin(
+    @GetMapping("/all")
+    public Mono<ResponseEntity<ApiResponse>> getAllDepartments(
             @RequestHeader("Authorization") String authorizationHeader,
-            @Valid @RequestBody PromoteToAdminRequest promoteRequest,
             ServerHttpRequest request) {
-        String token = extractToken(authorizationHeader);
 
-        return superAdminService.promoteToAdmin(token, promoteRequest, request)
-                .map(promotedEmployee -> ResponseEntity.ok(
-                        new ApiResponse(true,  promotedEmployee)
-                ))
-                .onErrorResume(e -> handleError(e, "Promote to Admin Role"));
+        String token = extractToken(authorizationHeader);
+        log.info("🎯 Received request to get all departments");
+
+        return departmentService.getAllDepartments(token, request)
+                .collectList()
+                .map(departments -> {
+                    log.info("✅ Successfully retrieved {} departments", departments.size());
+                    return ResponseEntity.ok(new ApiResponse(true, departments));
+                })
+                .onErrorResume(e -> handleError(e, "Get Departments"));
     }
 
-    @PutMapping("/remove-admin")
-    public Mono<ResponseEntity<ApiResponse>> removeAdminRole(
+    @PutMapping("/employee/update")
+    public Mono<ResponseEntity<ApiResponse>> updateEmployeeDepartment(
             @RequestHeader("Authorization") String authorizationHeader,
-            @Valid @RequestBody RemoveAdminRequest removeRequest,
+            @Valid @RequestBody UpdateDepartmentRequest updateRequest,
             ServerHttpRequest request) {
 
         String token = extractToken(authorizationHeader);
-        log.info("🎯 Received remove admin role request for: {}", removeRequest.getEmail());
+        log.info("🎯 Received update department request for: {} to {}",
+                updateRequest.getEmployeeCode(), updateRequest.getDepartment());
 
-        return superAdminService.removeAdminRole(token, removeRequest, request)
+        return departmentService.updateEmployeeDepartment(token, updateRequest, request)
                 .map(updatedEmployee -> {
-                    log.info("✅ Successfully removed ADMIN role from: {}", removeRequest.getEmail());
+                    log.info("✅ Successfully updated {} department to {}",
+                            updatedEmployee.getEmail(), updatedEmployee.getDepartment());
                     return ResponseEntity.ok(
-                            new ApiResponse(true,  updatedEmployee)
+                            new ApiResponse(true, updatedEmployee)
                     );
                 })
-                .onErrorResume(e -> handleError(e, "Remove Admin Role"));
+                .onErrorResume(e -> handleError(e, "Department update"));
     }
-
-
-
-
-
-
 
     private String extractToken(String authorizationHeader) {
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
@@ -79,18 +77,16 @@ public class SuperAdminController {
     private HttpStatus determineHttpStatus(String errorMessage, String operationType) {
         if (errorMessage.contains("Access denied")) {
             return HttpStatus.FORBIDDEN;
-        } else if (errorMessage.contains("not found")) {
-            return HttpStatus.NOT_FOUND;
-        } else if (errorMessage.contains("does not have ADMIN role") ||
-                errorMessage.contains("already has role") ||
-                errorMessage.contains("Invalid email") ||
-                errorMessage.contains("Email is required")) {
-            return HttpStatus.BAD_REQUEST;
         } else if (errorMessage.contains("Authentication failed")) {
             return HttpStatus.UNAUTHORIZED;
+        } else if (errorMessage.contains("not found")) {
+            return HttpStatus.NOT_FOUND;
+        } else if (errorMessage.contains("Invalid department") ||
+                errorMessage.contains("Employee code is required") ||
+                errorMessage.contains("Department is required")) {
+            return HttpStatus.BAD_REQUEST;
         } else {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
 }
-

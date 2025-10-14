@@ -28,8 +28,7 @@ public class EmployeeResponse {
     private LocalDateTime createdAt;
     @NotBlank
     private LocalDateTime updatedAt;
-    @NotBlank
-    private List<String> roles;
+
 
 
 }

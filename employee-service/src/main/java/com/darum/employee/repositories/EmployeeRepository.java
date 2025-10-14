@@ -19,4 +19,6 @@ public interface EmployeeRepository extends ReactiveCrudRepository<Employee, Lon
     Mono<Boolean> existsByUserId(String userId);
 
     Mono<Employee> findByEmail(@Email(message = "Email should be valid") @NotBlank(message = "Employee email is required") String employeeEmail);
+
+    Mono<Employee> findByEmployeeCode(@NotBlank(message = "Employee code is required") String employeeCode);
 }

@@ -1,8 +1,7 @@
 package com.darum.employee.controller;
 
-import com.darum.employee.dto.request.PromoteToAdminRequest;
-import com.darum.employee.dto.request.RemoveAdminRequest;
-import com.darum.employee.service.SuperAdminService;
+import com.darum.employee.dto.request.GetEmployeeRequest;
+import com.darum.employee.service.EmployeeService;
 import com.darum.shared.dto.response.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,47 +14,46 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @RestController
-@RequestMapping("/employees/admin")
+@RequestMapping("/employees")
 @RequiredArgsConstructor
-public class SuperAdminController {
-    private final SuperAdminService superAdminService;
+public class EmployeeController {
+    private final EmployeeService employeeService;
 
-    @PutMapping("/promote-to-admin")
-    public Mono<ResponseEntity<ApiResponse>> promoteToAdmin(
+    // POST /employees/specific - Get employee by employeeCode (Admin/SuperAdmin/Manager only)
+    @PostMapping("/get/specific-employee")
+    public Mono<ResponseEntity<ApiResponse>> getEmployeeByCode(
             @RequestHeader("Authorization") String authorizationHeader,
-            @Valid @RequestBody PromoteToAdminRequest promoteRequest,
-            ServerHttpRequest request) {
-        String token = extractToken(authorizationHeader);
-
-        return superAdminService.promoteToAdmin(token, promoteRequest, request)
-                .map(promotedEmployee -> ResponseEntity.ok(
-                        new ApiResponse(true,  promotedEmployee)
-                ))
-                .onErrorResume(e -> handleError(e, "Promote to Admin Role"));
-    }
-
-    @PutMapping("/remove-admin")
-    public Mono<ResponseEntity<ApiResponse>> removeAdminRole(
-            @RequestHeader("Authorization") String authorizationHeader,
-            @Valid @RequestBody RemoveAdminRequest removeRequest,
+            @Valid @RequestBody GetEmployeeRequest getEmployeeRequest,
             ServerHttpRequest request) {
 
         String token = extractToken(authorizationHeader);
-        log.info("🎯 Received remove admin role request for: {}", removeRequest.getEmail());
+        log.info("🎯 Received request to get employee by code: {}", getEmployeeRequest.getEmployeeCode());
 
-        return superAdminService.removeAdminRole(token, removeRequest, request)
-                .map(updatedEmployee -> {
-                    log.info("✅ Successfully removed ADMIN role from: {}", removeRequest.getEmail());
-                    return ResponseEntity.ok(
-                            new ApiResponse(true,  updatedEmployee)
-                    );
+        return employeeService.getEmployeeByCode(token, getEmployeeRequest, request)
+                .map(employee -> {
+                    log.info("✅ Successfully retrieved employee: {} with code: {}",
+                            employee.getEmail(), getEmployeeRequest.getEmployeeCode());
+                    return ResponseEntity.ok(new ApiResponse(true, employee));
                 })
-                .onErrorResume(e -> handleError(e, "Remove Admin Role"));
+                .onErrorResume(e -> handleError(e, "Get Employee by Code"));
     }
 
+    // GET /employees/me - View own details (any authenticated employee)
+    @GetMapping("/me")
+    public Mono<ResponseEntity<ApiResponse>> getMyDetails(
+            @RequestHeader("Authorization") String authorizationHeader,
+            ServerHttpRequest request) {
 
+        String token = extractToken(authorizationHeader);
+        log.info("🎯 Employee requesting own details");
 
-
+        return employeeService.getMyDetails(token, request)
+                .map(employee -> {
+                    log.info("✅ Successfully retrieved own details: {}", employee.getEmail());
+                    return ResponseEntity.ok(new ApiResponse(true, employee));
+                })
+                .onErrorResume(e -> handleError(e, "Get My Details"));
+    }
 
 
 
@@ -81,16 +79,12 @@ public class SuperAdminController {
             return HttpStatus.FORBIDDEN;
         } else if (errorMessage.contains("not found")) {
             return HttpStatus.NOT_FOUND;
-        } else if (errorMessage.contains("does not have ADMIN role") ||
-                errorMessage.contains("already has role") ||
-                errorMessage.contains("Invalid email") ||
-                errorMessage.contains("Email is required")) {
-            return HttpStatus.BAD_REQUEST;
         } else if (errorMessage.contains("Authentication failed")) {
             return HttpStatus.UNAUTHORIZED;
+        } else if (errorMessage.contains("Employee code is required")) {
+            return HttpStatus.BAD_REQUEST;
         } else {
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
     }
 }
-

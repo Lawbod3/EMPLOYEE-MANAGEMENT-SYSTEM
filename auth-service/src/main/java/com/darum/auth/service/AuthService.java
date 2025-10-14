@@ -127,4 +127,37 @@ public class AuthService {
         }
     }
 
+    // Add this method to your AuthService class
+    public UserResponse removeRoleFromUser(Long userId, String role) {
+        try {
+            // Find the user by ID
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+            //  Prevent removing SUPERADMIN role (security measure)
+            if (role.equals(Roles.SUPERADMIN)) {
+                throw new UnauthorizedException("Cannot remove SUPERADMIN role");
+            }
+            // Get current roles
+            List<String> currentRoles = new ArrayList<>(user.getRoles()); // Create new mutable list
+            System.out.println("🔍 Current roles list: " + currentRoles);
+            // Check if role exists to remove
+            if (!currentRoles.contains(role)) {
+                throw new RoleException("User does not have role: " + role);
+            }
+            // Remove the role
+            currentRoles.remove(role);
+            user.setRoles(currentRoles);
+            user.setUpdatedAt(LocalDateTime.now());
+            // Save the updated user
+            User updatedUser = userRepository.save(user);
+            UserResponse response = modelMapper.map(updatedUser, UserResponse.class);
+            return response;
+        } catch (RoleException | UnauthorizedException | UserNotFoundException e) {
+            // Re-throw specific exceptions
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to remove role: " + e.getMessage(), e);
+        }
+    }
+
 }
