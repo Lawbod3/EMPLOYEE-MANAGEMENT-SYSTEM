@@ -1,5 +1,6 @@
 package com.darum.employee.controller;
 
+import com.darum.employee.dto.request.DemoteManagerRequest;
 import com.darum.employee.dto.request.PromoteToManagerRequest;
 import com.darum.employee.service.ManagerService;
 import com.darum.shared.dto.response.ApiResponse;
@@ -36,6 +37,25 @@ public class ManagerController {
                     );
                 })
                 .onErrorResume(e -> handleError(e, "Promotion"));
+    }
+
+    @PutMapping("/demote-manager")
+    public Mono<ResponseEntity<ApiResponse>> demoteManager(
+            @RequestHeader("Authorization") String authorizationHeader,
+            @Valid @RequestBody DemoteManagerRequest demoteRequest,
+            ServerHttpRequest request) {
+
+        String token = extractToken(authorizationHeader);
+        log.info("🎯 Received demote manager request for: {}", demoteRequest.getEmail());
+
+        return managerService.demoteManager(token, demoteRequest, request)
+                .map(demotedEmployee -> {
+                    log.info("✅ Successfully demoted manager: {}", demotedEmployee.getEmail());
+                    return ResponseEntity.ok(
+                            new ApiResponse(true,  demotedEmployee)
+                    );
+                })
+                .onErrorResume(e -> handleError(e, "Demote Manager"));
     }
 
 

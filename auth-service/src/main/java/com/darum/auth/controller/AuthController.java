@@ -59,6 +59,95 @@ public class AuthController {
                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+//    @PutMapping("/users/{userId}/roles")
+//    public ResponseEntity<?> addRoleToUser(
+//            @PathVariable Long userId,
+//            @RequestBody AddRoleRequest addRoleRequest,
+//            @AuthenticationPrincipal CustomUserDetails currentUser,
+//            @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
+//            @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail
+//    ) {
+//
+//        //  Option 1: If called through gateway (with authentication)
+//        if (currentUser != null) {
+//
+//            //  USE ROLES CONSTANT
+//            if (!currentUser.getAuthorities().contains(new SimpleGrantedAuthority(Roles.SUPERADMIN))) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                        .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
+//            }
+//
+//        }
+//        //  Option 2: If called from another service (with headers)
+//        else if (headerUserEmail != null) {
+//            User callingUser = userRepository.findByEmail(headerUserEmail)
+//                    .orElseThrow(() -> new RuntimeException("Calling user not found"));
+//
+//            //  USE ROLES CONSTANT
+//            if (!callingUser.getRoles().contains(Roles.SUPERADMIN)) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                        .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
+//            }
+//        }
+//        //  No authentication
+//        else {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new ApiResponse(false, "Authentication required"));
+//        }
+//
+//        try {
+//            UserResponse updatedUser = authService.addRoleToUser(userId, addRoleRequest.getRole());
+//            return ResponseEntity.ok(new ApiResponse(true,  updatedUser));
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+//        }
+//
+//    }
+//
+//    // Remove role - DELETE with specific remove path
+//    @PostMapping("/users/{userId}/roles/remove")
+//    public ResponseEntity<?> removeRoleFromUser(
+//            @PathVariable Long userId,
+//            @RequestBody AddRoleRequest removeRoleRequest,
+//            @AuthenticationPrincipal CustomUserDetails currentUser,
+//            @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
+//            @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail
+//    ) {
+//
+//        // Option 1: If called through gateway (with authentication)
+//        if (currentUser != null) {
+//            // USE ROLES CONSTANT
+//            if (!currentUser.getAuthorities().contains(new SimpleGrantedAuthority(Roles.SUPERADMIN))) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                        .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
+//            }
+//        }
+//        // Option 2: If called from another service (with headers)
+//        else if (headerUserEmail != null) {
+//            User callingUser = userRepository.findByEmail(headerUserEmail)
+//                    .orElseThrow(() -> new RuntimeException("Calling user not found"));
+//
+//            // USE ROLES CONSTANT
+//            if (!callingUser.getRoles().contains(Roles.SUPERADMIN)) {
+//                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+//                        .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
+//            }
+//        }
+//        // No authentication
+//        else {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new ApiResponse(false, "Authentication required"));
+//        }
+//
+//        try {
+//            UserResponse updatedUser = authService.removeRoleFromUser(userId, removeRoleRequest.getRole());
+//            return ResponseEntity.ok(new ApiResponse(true,  updatedUser));
+//        } catch (RuntimeException e) {
+//            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+//        }
+//    }
+
+
     @PutMapping("/users/{userId}/roles")
     public ResponseEntity<?> addRoleToUser(
             @PathVariable Long userId,
@@ -67,44 +156,20 @@ public class AuthController {
             @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
             @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail
     ) {
-
-        //  Option 1: If called through gateway (with authentication)
-        if (currentUser != null) {
-
-            //  USE ROLES CONSTANT
-            if (!currentUser.getAuthorities().contains(new SimpleGrantedAuthority(Roles.SUPERADMIN))) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
-            }
-
-        }
-        //  Option 2: If called from another service (with headers)
-        else if (headerUserEmail != null) {
-            User callingUser = userRepository.findByEmail(headerUserEmail)
-                    .orElseThrow(() -> new RuntimeException("Calling user not found"));
-
-            //  USE ROLES CONSTANT
-            if (!callingUser.getRoles().contains(Roles.SUPERADMIN)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
-            }
-        }
-        //  No authentication
-        else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse(false, "Authentication required"));
+        // Validate SuperAdmin privileges using extracted method
+        ResponseEntity<?> validationResponse = validateSuperAdminAccess(currentUser, headerUserEmail);
+        if (validationResponse != null) {
+            return validationResponse;
         }
 
         try {
             UserResponse updatedUser = authService.addRoleToUser(userId, addRoleRequest.getRole());
-            return ResponseEntity.ok(new ApiResponse(true,  updatedUser));
+            return ResponseEntity.ok(new ApiResponse(true, updatedUser));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
         }
-
     }
 
-    // Remove role - DELETE with specific remove path
     @PostMapping("/users/{userId}/roles/remove")
     public ResponseEntity<?> removeRoleFromUser(
             @PathVariable Long userId,
@@ -113,10 +178,24 @@ public class AuthController {
             @RequestHeader(value = "X-User-Id", required = false) String headerUserId,
             @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail
     ) {
+        // Validate SuperAdmin privileges using extracted method
+        ResponseEntity<?> validationResponse = validateSuperAdminAccess(currentUser, headerUserEmail);
+        if (validationResponse != null) {
+            return validationResponse;
+        }
 
+        try {
+            UserResponse updatedUser = authService.removeRoleFromUser(userId, removeRoleRequest.getRole());
+            return ResponseEntity.ok(new ApiResponse(true, updatedUser));
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
+        }
+    }
+
+    // ✅ EXTRACTED METHOD: Common SuperAdmin validation logic
+    private ResponseEntity<?> validateSuperAdminAccess(CustomUserDetails currentUser, String headerUserEmail) {
         // Option 1: If called through gateway (with authentication)
         if (currentUser != null) {
-            // USE ROLES CONSTANT
             if (!currentUser.getAuthorities().contains(new SimpleGrantedAuthority(Roles.SUPERADMIN))) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
@@ -127,7 +206,6 @@ public class AuthController {
             User callingUser = userRepository.findByEmail(headerUserEmail)
                     .orElseThrow(() -> new RuntimeException("Calling user not found"));
 
-            // USE ROLES CONSTANT
             if (!callingUser.getRoles().contains(Roles.SUPERADMIN)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
@@ -139,11 +217,6 @@ public class AuthController {
                     .body(new ApiResponse(false, "Authentication required"));
         }
 
-        try {
-            UserResponse updatedUser = authService.removeRoleFromUser(userId, removeRoleRequest.getRole());
-            return ResponseEntity.ok(new ApiResponse(true,  updatedUser));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage()));
-        }
+        return null; // Validation passed
     }
 }

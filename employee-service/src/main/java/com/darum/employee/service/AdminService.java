@@ -10,12 +10,14 @@ import com.darum.employee.model.Status;
 import com.darum.employee.repositories.EmployeeRepository;
 import com.darum.shared.dto.Roles;
 import com.darum.shared.dto.response.UserResponse;
+import com.darum.shared.event.EmployeeCreatedEvent;
 import com.darum.shared.exceptions.UnauthorizedException;
 import com.darum.shared.security.SecurityConstants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.server.reactive.ServerHttpRequest;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -35,6 +37,9 @@ public class AdminService {
     private final EmployeeRepository employeeRepository;
     private final WebClient authWebClient;
     private final ModelMapper modelMapper;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+
 
     public Mono<EmployeeResponse> createEmployee(String token , CreateEmployeeRequest createEmployeeRequest, ServerHttpRequest request) {
         // Get headers from the incoming request (from gateway)
@@ -240,6 +245,22 @@ public class AdminService {
         return roles.contains(Roles.ADMIN) || roles.contains(Roles.SUPERADMIN);
     }
 
+    private Mono<Void> publishEmployeeCreatedEvent(Employee employee, String createdByAdmin) {
+        return Mono.fromRunnable(() -> {
+            EmployeeCreatedEvent event = new EmployeeCreatedEvent(
+                    employee.getEmployeeCode(),
+                    employee.getEmail(),
+                    employee.getFirstName(),
+                    employee.getLastName(),
+                    employee.getDepartment().name(),
+                    employee.getCreatedAt()
+            );
+
+            // Send immediately and return
+            kafkaTemplate.send("employee-created", event);
+            log.info("✅ Published employee created event for: {}", employee.getEmail());
+        });
+    }
 
 
 }

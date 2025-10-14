@@ -1,5 +1,6 @@
 package com.darum.employee.service;
 
+import com.darum.employee.dto.request.DemoteManagerRequest;
 import com.darum.employee.dto.request.PromoteToManagerRequest;
 import com.darum.employee.dto.response.EmployeeDepartmentResponse;
 import com.darum.employee.dto.response.EmployeeResponse;
@@ -104,7 +105,6 @@ public class ManagerService {
                                         .then(getUpdatedUser(targetUser.getEmail(), token, request)) // ← Get user with new ro
                                         .map(updatedUser -> { // ← Use the UPDATED user here
                                             EmployeeResponse response = modelMapper.map(targetEmployee, EmployeeResponse.class);
-                                            response.setRoles(updatedUser.getRoles()); // ← Use the UPDATED user's roles
                                             log.info("✅ Final roles after promotion: {}", updatedUser.getRoles());
                                             return response;
                                         });
@@ -238,6 +238,115 @@ public class ManagerService {
         return roles.contains(Roles.MANAGER) ||
                 roles.contains(Roles.ADMIN) ||
                 roles.contains(Roles.SUPERADMIN);
+    }
+    @Transactional
+    public Mono<EmployeeResponse> demoteManager(String token, DemoteManagerRequest demoteRequest, ServerHttpRequest request) {
+        // Get headers from gateway
+        String userId = request.getHeaders().getFirst("X-User-Id");
+        String userEmail = request.getHeaders().getFirst("X-User-Email");
+        String userRoles = request.getHeaders().getFirst("X-User-Roles");
+
+        log.info("🔍 Demoting manager: {}, requested by: {}, reason: {}",
+                demoteRequest.getEmail(), userEmail);
+
+        return authWebClient.get()
+                .uri("/auth/me")
+                .header(HttpHeaders.AUTHORIZATION, SecurityConstants.TOKEN_PREFIX + token)
+                .header("X-User-Id", userId)
+                .header("X-User-Email", userEmail)
+                .header("X-User-Roles", userRoles)
+                .retrieve()
+                .bodyToMono(UserResponse.class)
+                .onErrorResume(e -> Mono.error(new RuntimeException("Authentication failed: " + e.getMessage())))
+                .flatMap(adminUser -> {
+                    // Check if user has Admin or SuperAdmin privileges
+                    if (!hasAdminPrivileges(adminUser.getRoles())) {
+                        return Mono.error(new UnauthorizedException("Access denied: Admin privileges required"));
+                    }
+
+                    return processManagerDemotion(demoteRequest, token, request, adminUser);
+                });
+    }
+
+    private Mono<EmployeeResponse> processManagerDemotion(DemoteManagerRequest demoteRequest,
+                                                          String token, ServerHttpRequest request,
+                                                          UserResponse adminUser) {
+        String userId = request.getHeaders().getFirst("X-User-Id");
+        String userEmail = request.getHeaders().getFirst("X-User-Email");
+        String userRoles = request.getHeaders().getFirst("X-User-Roles");
+
+        return findEmployeeByEmail(demoteRequest.getEmail())
+                .flatMap(targetEmployee -> {
+                    log.info("🔍 Found employee to demote: {}", targetEmployee.getEmail());
+
+                    return authWebClient.get()
+                            .uri(uriBuilder -> uriBuilder
+                                    .path("/auth/user/email")
+                                    .queryParam("email", demoteRequest.getEmail())
+                                    .build())
+                            .header(HttpHeaders.AUTHORIZATION, SecurityConstants.TOKEN_PREFIX + token)
+                            .header("X-User-Id", userId)
+                            .header("X-User-Email", userEmail)
+                            .header("X-User-Roles", userRoles)
+                            .retrieve()
+                            .bodyToMono(UserResponse.class)
+                            .onErrorResume(e -> Mono.error(new EmployeeNotFoundException("User not found with email: " + demoteRequest.getEmail())))
+                            .flatMap(targetUser -> {
+                                // Check if user actually has MANAGER role
+                                if (!targetUser.getRoles().contains(Roles.MANAGER)) {
+                                    return Mono.error(new RuntimeException("User is not a manager: " + demoteRequest.getEmail()));
+                                }
+
+                                // Remove MANAGER role via Auth Service
+                                return removeManagerRoleFromUser(targetUser.getId(), token, request)
+                                        .then(updateEmployeeAfterDemotion(targetEmployee))
+                                        .then(getUpdatedUser(targetUser.getEmail(), token, request))
+                                        .map(updatedUser -> {
+                                            EmployeeResponse response = modelMapper.map(targetEmployee, EmployeeResponse.class);
+                                            log.info("✅ Final roles after demotion: {}", updatedUser.getRoles());
+                                            return response;
+                                        });
+                            });
+                });
+    }
+
+    private Mono<UserResponse> removeManagerRoleFromUser(Long userId, String token, ServerHttpRequest request) {
+        String requestUserId = request.getHeaders().getFirst("X-User-Id");
+        String userEmail = request.getHeaders().getFirst("X-User-Email");
+        String userRoles = request.getHeaders().getFirst("X-User-Roles");
+
+        return authWebClient.post()
+                .uri("/auth/users/" + userId + "/roles/remove")
+                .header(HttpHeaders.AUTHORIZATION, SecurityConstants.TOKEN_PREFIX + token)
+                .header("X-User-Id", requestUserId)
+                .header("X-User-Email", userEmail)
+                .header("X-User-Roles", userRoles)
+                .bodyValue(new AddRoleRequest(Roles.MANAGER))
+                .retrieve()
+                .onStatus(status -> status.is4xxClientError(), response -> {
+                    return response.bodyToMono(ApiResponse.class)
+                            .flatMap(apiResponse -> Mono.error(new RuntimeException(apiResponse.getData().toString())));
+                })
+                .onStatus(status -> status.is5xxServerError(), response -> {
+                    return response.bodyToMono(String.class)
+                            .flatMap(errorBody -> Mono.error(new RuntimeException("Auth service error: " + errorBody)));
+                })
+                .bodyToMono(UserResponse.class)
+                .doOnSuccess(response -> log.info("✅ Successfully removed MANAGER role from user: {}", response.getEmail()))
+                .doOnError(error -> log.error("❌ Failed to remove MANAGER role: {}", error.getMessage()));
+    }
+
+    private Mono<Employee> updateEmployeeAfterDemotion(Employee employee) {
+        // Option 1: Keep department but remove manager role
+        // Option 2: Reset department to default (choose one)
+
+        // I recommend Option 1 - keep department, just remove manager role
+        employee.setUpdatedAt(LocalDateTime.now());
+
+        log.info("🔄 Updated employee after manager demotion: {}", employee.getEmail());
+
+        return employeeRepository.save(employee)
+                .doOnSuccess(updated -> log.info("✅ Updated employee after demotion: {}", updated.getEmail()));
     }
 
 
