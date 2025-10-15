@@ -7,6 +7,7 @@ import com.darum.employee.exception.EmployeeNotFoundException;
 import com.darum.employee.model.Department;
 import com.darum.employee.model.Employee;
 import com.darum.employee.model.Status;
+import com.darum.employee.publisher.AdminNotification;
 import com.darum.employee.repositories.EmployeeRepository;
 import com.darum.shared.dto.Roles;
 import com.darum.shared.dto.response.UserResponse;
@@ -37,7 +38,8 @@ public class AdminService {
     private final EmployeeRepository employeeRepository;
     private final WebClient authWebClient;
     private final ModelMapper modelMapper;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final AdminNotification adminNotification;
+
 
 
 
@@ -97,11 +99,12 @@ public class AdminService {
                                     return Mono.error(new RuntimeException("User already exists as an employee"));
                                 }
                                 return employeeRepository.save(employee)
-                                        .map(savedEmployee -> modelMapper.map(savedEmployee, EmployeeResponse.class));
+                                        .flatMap(savedEmployee ->
+                                                adminNotification.publishEmployeeCreatedEvent(savedEmployee, adminUser.getEmail())
+                                                        .thenReturn(modelMapper.map(savedEmployee, EmployeeResponse.class))
+                                        );
                             });
-
-                });
-
+                            });
                 });
 
     }
@@ -245,22 +248,8 @@ public class AdminService {
         return roles.contains(Roles.ADMIN) || roles.contains(Roles.SUPERADMIN);
     }
 
-    private Mono<Void> publishEmployeeCreatedEvent(Employee employee, String createdByAdmin) {
-        return Mono.fromRunnable(() -> {
-            EmployeeCreatedEvent event = new EmployeeCreatedEvent(
-                    employee.getEmployeeCode(),
-                    employee.getEmail(),
-                    employee.getFirstName(),
-                    employee.getLastName(),
-                    employee.getDepartment().name(),
-                    employee.getCreatedAt()
-            );
 
-            // Send immediately and return
-            kafkaTemplate.send("employee-created", event);
-            log.info("✅ Published employee created event for: {}", employee.getEmail());
-        });
     }
 
 
-}
+
