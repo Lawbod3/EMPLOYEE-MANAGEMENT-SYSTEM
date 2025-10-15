@@ -38,7 +38,7 @@ public class AdminService {
     private final EmployeeRepository employeeRepository;
     private final WebClient authWebClient;
     private final ModelMapper modelMapper;
-    private final AdminNotification adminNotification;
+    //private final AdminNotification adminNotification;
 
 
 
@@ -99,10 +99,10 @@ public class AdminService {
                                     return Mono.error(new RuntimeException("User already exists as an employee"));
                                 }
                                 return employeeRepository.save(employee)
-                                        .flatMap(savedEmployee ->
-                                                adminNotification.publishEmployeeCreatedEvent(savedEmployee, adminUser.getEmail())
-                                                        .thenReturn(modelMapper.map(savedEmployee, EmployeeResponse.class))
-                                        );
+                                        .map(savedEmployee -> {
+                                            log.info("✅ Employee created successfully: {}", savedEmployee.getEmail());
+                                            return modelMapper.map(savedEmployee, EmployeeResponse.class);
+                                        });
                             });
                             });
                 });

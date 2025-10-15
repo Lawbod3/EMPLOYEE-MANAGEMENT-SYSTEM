@@ -49,6 +49,7 @@ public class SuperAdminService {
                     if (!superAdminUser.getRoles().contains(Roles.SUPERADMIN)) {
                         return Mono.error(new RuntimeException("Access denied: Super Admin privileges required"));
                     }
+                    log.info("Super Admin privileges granted");
 
                     return employeeRepository.findByEmail(promoteRequest.getEmail())
                             .doOnNext(employee -> System.out.println("🔍 Found employee: " + employee.getEmail()))
