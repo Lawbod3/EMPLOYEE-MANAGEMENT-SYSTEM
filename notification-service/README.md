@@ -3,6 +3,9 @@
 Event-driven notification microservice with Kafka and email integration.
 
 ## ⚙️ Basic Configuration
+# CONFIG SERVER CONNECTION
+# MAKE SURE TO DISABLE KRAFKA IF YOU YOU DONT HAVE IT
+# SYSTEM WONT WORK IF YOU DONT HAVE KRAFKA
 
 **File**: `src/main/resources/application.properties`
 
