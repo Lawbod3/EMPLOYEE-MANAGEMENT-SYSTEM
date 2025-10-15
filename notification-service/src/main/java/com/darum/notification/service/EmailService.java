@@ -58,6 +58,7 @@ public class EmailService {
 
                         return success;
 
+
                     } catch (IOException e) {
                         log.error("❌ IOException sending email to {}: {}", to, e.getMessage());
                         return false;
