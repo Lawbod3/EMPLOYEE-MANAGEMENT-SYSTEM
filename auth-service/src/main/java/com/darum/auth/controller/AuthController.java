@@ -1,5 +1,6 @@
 package com.darum.auth.controller;
 
+import com.darum.auth.documentations.AuthApiDocs;
 import com.darum.shared.dto.Roles;
 import com.darum.shared.dto.request.AddRoleRequest;
 import com.darum.shared.dto.response.UserResponse;
@@ -31,18 +32,21 @@ public class AuthController {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
+    @AuthApiDocs.RegisterDoc
    @PostMapping("/register")
     public ResponseEntity<?> register(@Valid @RequestBody RegisterRequest registerRequest) {
        AuthResponse response = authService.register(registerRequest);
        return new ResponseEntity<>(new ApiResponse(true, response), HttpStatus.CREATED);
    }
 
+   @AuthApiDocs.LoginDoc
    @PostMapping("/login")
     public ResponseEntity<?> login (@Valid @RequestBody AuthRequest authRequest) {
        AuthResponse response = authService.login(authRequest);
        return new ResponseEntity<>(new ApiResponse(true, response), HttpStatus.OK);
    }
 
+    @AuthApiDocs.GetProfileDoc
     @GetMapping("/me")
     public ResponseEntity<UserResponse> getById(@AuthenticationPrincipal CustomUserDetails userDetail) {
         Optional<User> userFound = userRepository.findByEmail(userDetail.getUsername());
@@ -51,6 +55,7 @@ public class AuthController {
                 .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
+    @AuthApiDocs.GetUserByEmailDoc
     @GetMapping("/user/email")
     public ResponseEntity<UserResponse> getByEmail(@RequestParam String email) {
        Optional<User> userFound = userRepository.findByEmail(email);
@@ -61,7 +66,7 @@ public class AuthController {
 
 
 
-
+    @AuthApiDocs.AddRoleDoc
     @PutMapping("/users/{userId}/roles")
     public ResponseEntity<?> addRoleToUser(
             @PathVariable Long userId,
@@ -84,6 +89,8 @@ public class AuthController {
         }
     }
 
+
+    @AuthApiDocs.RemoveRoleDoc
     @PostMapping("/users/{userId}/roles/remove")
     public ResponseEntity<?> removeRoleFromUser(
             @PathVariable Long userId,
@@ -106,7 +113,7 @@ public class AuthController {
         }
     }
 
-    // ✅ EXTRACTED METHOD: Common SuperAdmin validation logic
+    //  EXTRACTED METHOD: Common SuperAdmin validation logic
     private ResponseEntity<?> validateSuperAdminAccess(CustomUserDetails currentUser, String headerUserEmail) {
         // Option 1: If called through gateway (with authentication)
         if (currentUser != null) {
