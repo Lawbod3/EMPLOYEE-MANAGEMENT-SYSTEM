@@ -1,5 +1,6 @@
 package com.darum.employee.controller;
 
+import com.darum.employee.documentations.ManagerApiDocs;
 import com.darum.employee.dto.request.DemoteManagerRequest;
 import com.darum.employee.dto.request.PromoteToManagerRequest;
 import com.darum.employee.service.ManagerService;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 public class ManagerController {
     private final ManagerService managerService;
 
+    @ManagerApiDocs.PromoteToManagerDoc
     @PutMapping("/promote-to-manager")
     public Mono<ResponseEntity<ApiResponse>> promoteToManager(
             @RequestHeader("Authorization") String authorizationHeader,
@@ -39,6 +41,7 @@ public class ManagerController {
                 .onErrorResume(e -> handleError(e, "Promotion"));
     }
 
+    @ManagerApiDocs.DemoteManagerDoc
     @PutMapping("/demote-manager")
     public Mono<ResponseEntity<ApiResponse>> demoteManager(
             @RequestHeader("Authorization") String authorizationHeader,
@@ -59,7 +62,7 @@ public class ManagerController {
     }
 
 
-
+    @ManagerApiDocs.GetEmployeesInDepartmentDoc
     @GetMapping("/manager/my-department")
     public Mono<ResponseEntity<ApiResponse>> getEmployeesInMyDepartment(
             @RequestHeader("Authorization") String authorizationHeader,

@@ -1,5 +1,6 @@
 package com.darum.employee.controller;
 
+import com.darum.employee.documentations.EmployeeApiDocs;
 import com.darum.employee.dto.request.GetEmployeeRequest;
 import com.darum.employee.service.EmployeeService;
 import com.darum.shared.dto.response.ApiResponse;
@@ -20,6 +21,7 @@ public class EmployeeController {
     private final EmployeeService employeeService;
 
     // POST /employees/specific - Get employee by employeeCode (Admin/SuperAdmin/Manager only)
+    @EmployeeApiDocs.GetSpecificEmployeeDoc
     @PostMapping("/get/specific-employee")
     public Mono<ResponseEntity<ApiResponse>> getEmployeeByCode(
             @RequestHeader("Authorization") String authorizationHeader,
@@ -39,6 +41,7 @@ public class EmployeeController {
     }
 
     // GET /employees/me - View own details (any authenticated employee)
+    @EmployeeApiDocs.GetMyDetailsDoc
     @GetMapping("/me")
     public Mono<ResponseEntity<ApiResponse>> getMyDetails(
             @RequestHeader("Authorization") String authorizationHeader,
