@@ -1,5 +1,6 @@
 package com.darum.employee.controller;
 
+import com.darum.employee.documentations.DepartmentApiDocs;
 import com.darum.employee.dto.request.UpdateDepartmentRequest;
 import com.darum.employee.service.DepartmentService;
 import com.darum.shared.dto.response.ApiResponse;
@@ -19,6 +20,7 @@ import reactor.core.publisher.Mono;
 public class DepartmentController {
     private final DepartmentService departmentService;
 
+    @DepartmentApiDocs.GetAllDepartmentsDoc
     @GetMapping("/all")
     public Mono<ResponseEntity<ApiResponse>> getAllDepartments(
             @RequestHeader("Authorization") String authorizationHeader,
@@ -36,6 +38,7 @@ public class DepartmentController {
                 .onErrorResume(e -> handleError(e, "Get Departments"));
     }
 
+    @DepartmentApiDocs.UpdateEmployeeDepartmentDoc
     @PutMapping("/employee/update")
     public Mono<ResponseEntity<ApiResponse>> updateEmployeeDepartment(
             @RequestHeader("Authorization") String authorizationHeader,
