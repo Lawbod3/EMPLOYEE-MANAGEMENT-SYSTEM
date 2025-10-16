@@ -1,5 +1,6 @@
 package com.darum.employee.controller;
 
+import com.darum.employee.documentations.AdminApiDocs;
 import com.darum.employee.dto.request.CreateEmployeeRequest;
 import com.darum.employee.dto.request.UpdateEmployeeStatusRequest;
 import com.darum.employee.service.AdminService;
@@ -21,6 +22,7 @@ public class AdminController {
 
     private final AdminService adminService;
 
+    @AdminApiDocs.CreateEmployeeDoc
     @PostMapping("/create")
     public Mono<ResponseEntity<ApiResponse>> createEmployee(@RequestHeader("Authorization") String authorization,
                                                                              @Valid @RequestBody CreateEmployeeRequest request, ServerHttpRequest server){
@@ -33,6 +35,7 @@ public class AdminController {
 
     }
 
+    @AdminApiDocs.GetAllEmployeesDoc
     @GetMapping("/getAllEmployees")
     public Mono<ResponseEntity<ApiResponse>> getAllEmployees(@RequestHeader("Authorization") String authorizationHeader, ServerHttpRequest request){
         String token = extractToken(authorizationHeader);
@@ -52,6 +55,7 @@ public class AdminController {
         return authorizationHeader;
     }
 
+    @AdminApiDocs.UpdateEmployeeStatusDoc
     @PutMapping("/update-status")
     public Mono<ResponseEntity<ApiResponse>> updateEmployeeStatus(
             @RequestHeader("Authorization") String authorizationHeader,

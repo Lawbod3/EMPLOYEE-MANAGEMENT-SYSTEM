@@ -43,7 +43,8 @@ public class SecurityConfig {
                         .pathMatchers("/employees/**").authenticated()
                         .anyExchange().permitAll()
                 )
-                // ✅ Use your custom reactive JWT filter
+
+                //  Use your custom reactive JWT filter
                 .addFilterBefore(jwtAuthWebFilter, SecurityWebFiltersOrder.AUTHENTICATION)
                 .build();
     }
