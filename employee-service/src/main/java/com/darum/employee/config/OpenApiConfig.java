@@ -15,7 +15,7 @@ public class OpenApiConfig {
     public OpenAPI employeeServiceOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Auth Service API")
+                        .title("Employee Service API")
                         .description("Authentication Service API Documentation")
                         .version("1.0"))
                 .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))

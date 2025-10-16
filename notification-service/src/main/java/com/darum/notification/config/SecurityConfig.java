@@ -1,6 +1,6 @@
-package com.darum.employee.config;
+package com.darum.notification.config;
 
-import com.darum.employee.security.JwtAuthWebFilter;
+import com.darum.notification.security.JwtAuthWebFilter;
 import com.fasterxml.jackson.databind.ser.std.StringSerializer;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -15,7 +15,6 @@ import org.springframework.security.config.annotation.web.reactive.EnableWebFlux
 import org.springframework.security.config.web.server.SecurityWebFiltersOrder;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.authentication.AuthenticationWebFilter;
 
 import java.util.HashMap;
 import java.util.Map;
