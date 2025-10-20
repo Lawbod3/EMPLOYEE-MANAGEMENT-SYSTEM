@@ -25,7 +25,7 @@ public class SuperAdminApiDocs {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Employee successfully promoted to admin",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input or employee already has admin role"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - invalid or missing token"),
             @ApiResponse(responseCode = "403", description = "Access denied - only SuperAdmin can perform this action"),
@@ -60,7 +60,7 @@ public class SuperAdminApiDocs {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Admin role successfully removed from user",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid email or user does not have ADMIN role"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - invalid token"),
             @ApiResponse(responseCode = "403", description = "Access denied - only SuperAdmin allowed"),

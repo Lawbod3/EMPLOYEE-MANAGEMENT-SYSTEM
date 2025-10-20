@@ -27,7 +27,7 @@ public class ManagerApiDocs {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Employee successfully promoted to manager",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid input or department"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Access denied - insufficient privileges"),
@@ -60,7 +60,7 @@ public class ManagerApiDocs {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Manager successfully demoted",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))),
             @ApiResponse(responseCode = "400", description = "Invalid request data"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Access denied - insufficient privileges"),
@@ -91,7 +91,7 @@ public class ManagerApiDocs {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "List of employees retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))),
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Access denied - insufficient privileges"),
             @ApiResponse(responseCode = "404", description = "No employees found in department")

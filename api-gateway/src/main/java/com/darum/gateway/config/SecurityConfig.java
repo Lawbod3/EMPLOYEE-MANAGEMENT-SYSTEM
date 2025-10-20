@@ -1,6 +1,7 @@
 package com.darum.gateway.config;
 
 
+import io.netty.handler.codec.http.HttpMethod;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
@@ -16,13 +17,16 @@ public class SecurityConfig {
         return http.csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(exchanges -> exchanges
                         // 👇 Allow Swagger/OpenAPI endpoints
+
                         .pathMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
                                 "/swagger-ui/**",
                                 "/webjars/**",
                                 "/swagger-resources/**",
-                                "/gateway/routes"  // if you add your route list endpoint
+                                "/gateway/routes",
+                                "/auth/v3/api-docs/**",
+                                "/employees/v3/api-docs/**"
                         ).permitAll()
                         // 👇 Permit everything else (for now)
                         .anyExchange().permitAll()

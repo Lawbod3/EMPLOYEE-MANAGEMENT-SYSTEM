@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
@@ -29,7 +30,14 @@ public class JwtAuthWebFilter implements WebFilter {
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
+        ServerHttpRequest request = exchange.getRequest();
+
+        if (request.getMethod() == org.springframework.http.HttpMethod.OPTIONS) {
+            return chain.filter(exchange);
+        }
+
         String token = extractToken(exchange);
+
 
         if (token != null) {
             log.debug("Extracted token: {}", token);

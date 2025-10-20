@@ -28,7 +28,7 @@ public class DepartmentApiDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "Departments retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token"),
             @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -46,7 +46,7 @@ public class DepartmentApiDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "Employee department updated successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request or department not found"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),

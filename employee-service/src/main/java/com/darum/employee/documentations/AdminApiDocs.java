@@ -1,5 +1,6 @@
 package com.darum.employee.documentations;
 
+import com.darum.employee.dto.response.EmployeeResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -13,6 +14,7 @@ import com.darum.employee.dto.request.UpdateEmployeeStatusRequest;
 
 
 
+
 /**
  * 📘 Swagger documentation annotations for Employee Admin APIs (WebFlux)
  */
@@ -21,16 +23,11 @@ import com.darum.employee.dto.request.UpdateEmployeeStatusRequest;
 public class AdminApiDocs {
 
     //  CREATE EMPLOYEE
-    @Operation(
-            summary = "Create a new employee",
-            description = "Allows Admin or SuperAdmin to create an employee from an existing user account.",
-            security = @SecurityRequirement(name = "bearerAuth")
-    )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "201",
                     description = "Employee created successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class)) // ✅ FIXED!
             ),
             @ApiResponse(responseCode = "400", description = "Invalid department or input data"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - invalid token"),
@@ -65,7 +62,7 @@ public class AdminApiDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "List of employees retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),
             @ApiResponse(responseCode = "403", description = "Access denied")
@@ -82,7 +79,7 @@ public class AdminApiDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "Employee status updated successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid status value"),
             @ApiResponse(responseCode = "401", description = "Unauthorized"),

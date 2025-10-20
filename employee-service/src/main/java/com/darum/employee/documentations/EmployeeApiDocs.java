@@ -30,7 +30,7 @@ public class EmployeeApiDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "Employee retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))
             ),
             @ApiResponse(responseCode = "400", description = "Invalid request or missing employee code"),
             @ApiResponse(responseCode = "401", description = "Unauthorized - missing or invalid token"),
@@ -69,7 +69,7 @@ public class EmployeeApiDocs {
             @ApiResponse(
                     responseCode = "200",
                     description = "Employee details retrieved successfully",
-                    content = @Content(schema = @Schema(implementation = ApiResponse.class))
+                    content = @Content(schema = @Schema(implementation = com.darum.shared.dto.response.ApiResponse.class))
             ),
             @ApiResponse(responseCode = "401", description = "Unauthorized - invalid or missing token"),
             @ApiResponse(responseCode = "404", description = "Employee record not found"),

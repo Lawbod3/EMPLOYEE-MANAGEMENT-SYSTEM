@@ -1,5 +1,6 @@
 package com.darum.gateway.security;
 
+import org.springframework.http.HttpMethod;
 import com.darum.shared.security.JwtUtil;
 import com.darum.shared.security.SecurityConstants;
 import org.springframework.beans.factory.annotation.Value;
@@ -37,6 +38,8 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
     private Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
 
+
+
         // Skip authentication for public endpoints
         if (isPublicEndpoint(request)) {
             return chain.filter(exchange);
@@ -65,6 +68,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
                     .header("X-User-Id", userId)
                     .header("X-User-Email", username)
                     .header("X-User-Roles", String.join(",", roles))
+                    .header(SecurityConstants.TOKEN_HEADER, authHeader)
                     .build();
 
             return chain.filter(exchange.mutate().request(modifiedRequest).build());
@@ -81,8 +85,15 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 
     private boolean isPublicEndpoint(ServerHttpRequest request) {
         String path = request.getPath().toString();
+        boolean isSwaggerDoc = path.contains("/v3/api-docs") ||
+                path.contains("/swagger-ui") ||
+                path.contains("/auth/v3/api-docs") ||
+                path.contains("/employees/v3/api-docs");
+
         // Only check paths that come into the GATEWAY
-        boolean isPublic = path.startsWith("/api/auth/");
+        boolean isAuthEndpoint = path.startsWith("/api/auth/");
+
+        boolean isPublic = isSwaggerDoc || isAuthEndpoint;
         System.out.println("=== Path: " + path + " | Is Public: " + isPublic);
         return isPublic;
     }
