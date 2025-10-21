@@ -76,7 +76,7 @@ public class AuthController {
             @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail
     ) {
         // Validate SuperAdmin privileges using extracted method
-        ResponseEntity<?> validationResponse = validateSuperAdminAccess(currentUser, headerUserEmail);
+        ResponseEntity<?> validationResponse = validateSuperAdminAccess(currentUser, headerUserEmail, addRoleRequest.getRole());
         if (validationResponse != null) {
             return validationResponse;
         }
@@ -100,7 +100,7 @@ public class AuthController {
             @RequestHeader(value = "X-User-Email", required = false) String headerUserEmail
     ) {
         // Validate SuperAdmin privileges using extracted method
-        ResponseEntity<?> validationResponse = validateSuperAdminAccess(currentUser, headerUserEmail);
+        ResponseEntity<?> validationResponse = validateSuperAdminAccess(currentUser, headerUserEmail, removeRoleRequest.getRole());
         if (validationResponse != null) {
             return validationResponse;
         }
@@ -114,10 +114,18 @@ public class AuthController {
     }
 
     //  EXTRACTED METHOD: Common SuperAdmin validation logic
-    private ResponseEntity<?> validateSuperAdminAccess(CustomUserDetails currentUser, String headerUserEmail) {
+    private ResponseEntity<?> validateSuperAdminAccess(CustomUserDetails currentUser, String headerUserEmail, String targetRole) {
         // Option 1: If called through gateway (with authentication)
         if (currentUser != null) {
-            if (!currentUser.getAuthorities().contains(new SimpleGrantedAuthority(Roles.SUPERADMIN))) {
+            if (currentUser.getAuthorities().contains(new SimpleGrantedAuthority(Roles.SUPERADMIN))) {
+                return null;
+            } else if (currentUser.getAuthorities().contains(new SimpleGrantedAuthority(Roles.ADMIN))) {
+                if(targetRole.equals(Roles.MANAGER)){
+                    return null;
+                }
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(new ApiResponse(false, "Admins can only assign MANAGER role"));
+            } else{
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
             }
@@ -127,17 +135,22 @@ public class AuthController {
             User callingUser = userRepository.findByEmail(headerUserEmail)
                     .orElseThrow(() -> new RuntimeException("Calling user not found"));
 
-            if (!callingUser.getRoles().contains(Roles.SUPERADMIN)) {
+            if (callingUser.getRoles().contains(Roles.SUPERADMIN)) {
+                return null;
+            } else if (callingUser.getRoles().contains(Roles.ADMIN) && targetRole.equals(Roles.MANAGER)) {
+                return null;
+
+            } else{
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(new ApiResponse(false, "Access denied: Super Admin privileges required"));
             }
-        }
-        // No authentication
-        else {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new ApiResponse(false, "Authentication required"));
+
         }
 
-        return null; // Validation passed
+
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new ApiResponse(false, "Authentication required"));
+
+
     }
 }

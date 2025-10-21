@@ -7,6 +7,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 
+import java.util.List;
+
 
 @Configuration
 public class CorsGlobalConfig {
@@ -16,10 +18,9 @@ public class CorsGlobalConfig {
         CorsConfiguration config = new CorsConfiguration();
 
         // Allowed origins can be local or production
-        config.addAllowedOrigin("http://localhost:8084"); // Gateway Swagger UI
-
-        config.addAllowedHeader("*");
-        config.addAllowedMethod("*");
+        config.setAllowedOrigins(List.of("http://localhost:8084")); // Gateway Swagger UI
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

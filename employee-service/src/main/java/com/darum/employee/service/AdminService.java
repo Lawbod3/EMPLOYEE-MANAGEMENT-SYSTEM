@@ -192,7 +192,6 @@ public class AdminService {
         if (currentUser.getRoles().contains(Roles.SUPERADMIN)) {
             return Mono.just(true);
         }
-
         // Admin cannot update themselves
         if (currentUser.getEmail().equals(targetEmail)) {
             return Mono.just(false);
