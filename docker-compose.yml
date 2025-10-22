@@ -2,6 +2,28 @@ version: '3.8'
 
 services:
   # =========================
+  # CONFIG SERVER
+  # =========================
+  config-server:
+    image: configserver:latest
+    container_name: config-server
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
+    ports:
+      - "8888:8888"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - CONFIG_GIT_URI=${CONFIG_GIT_URI}
+      - CONFIG_GIT_USERNAME=${CONFIG_GIT_USERNAME}
+      - CONFIG_GIT_PASSWORD=${CONFIG_GIT_PASSWORD}
+      - EUREKA_URL=http://discovery-server:8761/eureka
+    depends_on:
+      - discovery-server
+    networks:
+      - darum-network
+
+  # =========================
   # EUREKA / DISCOVERY SERVER
   # =========================
   discovery-server:
@@ -30,11 +52,11 @@ services:
       - "8084:8084"
     depends_on:
       - discovery-server
+      - config-server
       - redis
     environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
       - EUREKA_URL=http://discovery-server:8761/eureka
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
     networks:
       - darum-network
 
@@ -51,15 +73,14 @@ services:
       - "8081:8081"
     depends_on:
       - discovery-server
+      - config-server
       - postgres-auth
     environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_URL=http://discovery-server:8761/eureka
       - DB_HOST=postgres-auth
       - DB_USERNAME=sulaimonlawal
       - DB_PASSWORD=Omolade3
-      - SUPERADMIN_EMAIL=superadmin@yourdomain.com
-      - SUPERADMIN_PASSWORD=YourStrongPassword123
-      - EUREKA_URL=http://discovery-server:8761/eureka
-      - JWT_SECRET=bXlTZWNyZXRLZXlGb3JKV1RHZW5lcmF0aW9uSW5FbXBsb3llZU1hbmFnZW1lbnRTeXN0ZW0yMDI0
     networks:
       - darum-network
 
@@ -76,15 +97,16 @@ services:
       - "8082:8082"
     depends_on:
       - discovery-server
+      - config-server
       - postgres-employee
       - kafka
     environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_URL=http://discovery-server:8761/eureka
       - DB_HOST=postgres-employee
       - DB_USERNAME=sulaimonlawal
       - DB_PASSWORD=Omolade3
-      - EUREKA_URL=http://discovery-server:8761/eureka
       - KAFKA_BROKER=kafka:9092
-      - JWT_SECRET=bXlTZWNyZXRLZXlGb3JKV1RHZW5lcmF0aW9uSW5FbXBsb3llZU1hbmFnZW1lbnRTeXN0ZW0yMDI0
     networks:
       - darum-network
 
@@ -101,18 +123,19 @@ services:
       - "8083:8083"
     depends_on:
       - discovery-server
+      - config-server
       - postgres-notification
       - kafka
     environment:
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
+      - EUREKA_URL=http://discovery-server:8761/eureka
       - DB_HOST=postgres-notification
       - DB_USERNAME=sulaimonlawal
       - DB_PASSWORD=Omolade3
-      - EUREKA_URL=http://discovery-server:8761/eureka
       - KAFKA_BROKER=kafka:9092
-      - JWT_SECRET=bXlTZWNyZXRLZXlGb3JKV1RHZW5lcmF0aW9uSW5FbXBsb3llZU1hbmFnZW1lbnRTeXN0ZW0yMDI0
-      - SENDGRID_API_KEY=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
-      - SENDGRID_FROM_EMAIL=lawalolabode802@gmail.com
-      - SENDGRID_FROM_NAME=Darum
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY}
+      - SENDGRID_FROM_EMAIL=${SENDGRID_FROM_EMAIL}
+      - SENDGRID_FROM_NAME=${SENDGRID_FROM_NAME}
     networks:
       - darum-network
 
@@ -162,7 +185,7 @@ services:
       - darum-network
 
   # =========================
-  # REDIS (for rate limiting / caching)
+  # REDIS
   # =========================
   redis:
     image: redis:7
@@ -173,7 +196,7 @@ services:
       - darum-network
 
   # =========================
-  # KAFKA + ZOOKEEPER (UPDATED)
+  # ZOOKEEPER
   # =========================
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -186,6 +209,9 @@ services:
     networks:
       - darum-network
 
+  # =========================
+  # KAFKA
+  # =========================
   kafka:
     image: confluentinc/cp-kafka:7.4.0
     container_name: kafka
